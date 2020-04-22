@@ -1,4 +1,4 @@
-# ICPCP
+# Quality-Critical WOrkflow Planner Q-CWOP
 planner algorithms
 
 # Additional Resources
