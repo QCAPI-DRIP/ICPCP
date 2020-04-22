@@ -1,0 +1,41 @@
+openapi: 3.0.0
+info:
+  title: q-cwop
+  description: 'Quality-Critical WOrkflow Planner Q-CWOP '
+  contact:
+    email: S.Koulouzis@uva.nl
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.0.1-oas3
+servers:
+- url: /
+paths:
+  /workflow:
+    post:
+      summary: upload a CWL workflow file
+      description: upload CWL workflow file
+      operationId: uploadCWL
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/body'
+      responses:
+        "200":
+          description: successful operation
+          content:
+            '*/*':
+              schema:
+                type: string
+components:
+  schemas:
+    body:
+      required:
+      - file
+      type: object
+      properties:
+        file:
+          type: string
+          description: tosca Template description
+          format: binary
