@@ -13,6 +13,6 @@ https://github.com/judiths1618/DQN-based-MARL-v2.0
 * Other libraries, APIs : https://github.com/common-workflow-language
 
 ## rabix.io
-Composer: https://rabix.io/
-Composer Sources: https://github.com/rabix/composer
-Other libraries, APIs : https://github.com/rabix
+* Composer: https://rabix.io/
+* Composer Sources: https://github.com/rabix/composer
+* Other libraries, APIs : https://github.com/rabix
