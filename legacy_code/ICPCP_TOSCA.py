@@ -79,7 +79,7 @@ class Workflow():
         print(inlist)
         num_zero = 0
         for j in inlist:
-            if j[1] == 0:
+            if inlist[j] == 0:
                 num_zero += 1
         if num_zero > 1 or (num_zero == 1 and self.p_table[0, 0] > 0):
             if num_zero > 1:
@@ -98,7 +98,7 @@ class Workflow():
         outlist = list(self.G.out_degree())
         num_zero = 0
         for j in outlist:
-            if j[1] == 0:
+            if outlist[j] == 0:
                 num_zero += 1
         if num_zero > 1 or (num_zero == 1 and self.p_table[0, self.vertex_num - 1] > 0):
             if num_zero > 1:
@@ -211,7 +211,7 @@ class Workflow():
         max_time = 0
         cp = -1
         d_est = self.G.node[d]["est"]
-        p_iter = self.G.predecessors(d)
+        p_iter = iter(self.G.predecessors(d))
         while True:
             try:
                 p = next(p_iter)
@@ -230,7 +230,7 @@ class Workflow():
     # calculate the earliest start time and earliest finish time
     def cal_est(self, i):
         successors = []
-        c_iter = self.G.successors(i)
+        c_iter = iter(self.G.successors(i))
         while True:
             try:
                 c = next(c_iter)
@@ -248,7 +248,7 @@ class Workflow():
 
     def cal_lft(self, d):
         predecessors = []
-        c_iter = self.G.predecessors(d)
+        c_iter = iter(self.G.predecessors(d))
         while True:
             try:
                 p = next(c_iter)
@@ -274,7 +274,7 @@ class Workflow():
 
     def has_unassigned_parent(self, i):
         predecessors = []
-        c_iter = self.G.predecessors(i)
+        c_iter = iter(self.G.predecessors(i))
         while True:
             try:
                 p = next(c_iter)
@@ -781,7 +781,7 @@ class Workflow():
         maxest = 0
 
         predecessors = []
-        c_iter = self.G.predecessors(d)
+        c_iter = iter(self.G.predecessors(d))
         while True:
             try:
                 p = next(c_iter)
@@ -844,7 +844,7 @@ class Workflow():
         minlft = self.deadline
 
         successors = []
-        c_iter = self.G.successors(d)
+        c_iter = iter(self.G.successors(d))
         while True:
             try:
                 c = next(c_iter)
@@ -904,7 +904,7 @@ class Workflow():
 
             maxest = 0
             dominant_parent = -1
-            p_iter = self.G.predecessors(n)
+            p_iter = iter(self.G.predecessors(n))
             while True:
                 try:
                     p = next(p_iter)
@@ -945,7 +945,7 @@ class Workflow():
 
             minlft = self.deadline
             dominant_child = -1
-            c_iter = self.G.successors(n)
+            c_iter = iter(self.G.successors(n))
             while True:
                 try:
                     c = next(c_iter)

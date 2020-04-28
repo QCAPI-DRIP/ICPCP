@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+input/
+.idea/
+.idea/Q-CWOP.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/Q-CWOP.iml
+.idea/vcs.xml
