@@ -11,7 +11,7 @@ import random
 import networkx as nx
 import numpy as np
 import json
-# from NewInstance import NewInstance
+from NewInstance import NewInstance
 from subprocess import call
 import time
 from collections import deque
