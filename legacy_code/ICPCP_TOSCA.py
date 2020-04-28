@@ -11,19 +11,20 @@ import random
 import networkx as nx
 import numpy as np
 import json
-from NewInstance import NewInstance
+# from NewInstance import NewInstance
 from subprocess import call
 import time
 from collections import deque
 
 from optparse import OptionParser
 
-from __builtin__ import
 
-True
+# from __builtin__ import True
+from networkx import DiGraph
 
 
 class Workflow():
+
 
     # The following two functions are to initialize the EST, EFT and LFT
     # calculate the earliest start time and earliest finish time
@@ -41,7 +42,7 @@ class Workflow():
             data = json.load(f)
             f.close
 
-        for (key, value) in data.items():
+        for (key, value) in list(data.items()):
             if isinstance(value, list):
                 if key == 'nodes':
                     # self.vertex_num = len(value)
@@ -58,7 +59,7 @@ class Workflow():
                     for link in value:
                         s = -1
                         t = -1
-                        for o, n in names.iteritems():
+                        for o, n in names.items():
                             if n == link['source']:
                                 s = o
                             if n == link['target']:
@@ -66,37 +67,30 @@ class Workflow():
                         self.G.add_weighted_edges_from([(s, t, link['throughput'])])
 
         # read performance table
-        l = [map(int, line.split(',')) for line in open(performance_file_name, 'r')]
+        l = [list(map(int, line.split(','))) for line in open(performance_file_name, 'r')]
         self.p_table = np.matrix(l)
-        print
-        "number of nodes in G: " + str(self.vertex_num)
-        print
-        self.p_table
+        print("number of nodes in G: " + str(self.vertex_num))
+        print(self.p_table)
 
         # two reasons for adding entry node
         # a) no entry node present
         # b) current entry node has non-zero performance
         inlist = list(self.G.in_degree())
-        print
-        inlist
+        print(inlist)
         num_zero = 0
         for j in inlist:
             if j[1] == 0:
                 num_zero += 1
         if num_zero > 1 or (num_zero == 1 and self.p_table[0, 0] > 0):
             if num_zero > 1:
-                print
-                "Add entry node to graph; dag file has no entry node"
+                print("Add entry node to graph; dag file has no entry node")
             else:
-                print
-                "Add entry node to graph; dag file has entry node with non-zero performance"
+                print("Add entry node to graph; dag file has entry node with non-zero performance")
             self.add_entry_node()
             # adjust perf table
             self.p_table = np.insert(self.p_table, 0, np.zeros((1, 1), dtype=int), axis=1)
-        print
-        "number of nodes in G: " + str(self.vertex_num)
-        print
-        self.p_table
+        print("number of nodes in G: " + str(self.vertex_num))
+        print(self.p_table)
 
         # two reasons for adding exit node
         # a) no exit node present
@@ -108,28 +102,23 @@ class Workflow():
                 num_zero += 1
         if num_zero > 1 or (num_zero == 1 and self.p_table[0, self.vertex_num - 1] > 0):
             if num_zero > 1:
-                print
-                "Add exit node to graph; dag file has no exit node"
+                print("Add exit node to graph; dag file has no exit node")
             else:
-                print
-                "Add exit node to graph; dag file has exit node with non-zero performance"
+                print("Add exit node to graph; dag file has exit node with non-zero performance")
             self.add_exit_node()
             # sys.exit("\nQuit\n")
             # adjust perf table
             self.p_table = np.append(self.p_table, np.zeros((3, 1), dtype=int), axis=1)
-        print
-        "number of nodes in G: " + str(self.vertex_num)
-        print
-        self.p_table
+        print("number of nodes in G: " + str(self.vertex_num))
+        print(self.p_table)
 
         self.assigned_list = [-1] * (self.vertex_num)
 
-        self.vm_price = map(int, open(price_file_name, 'r').readline().split(','))
+        self.vm_price = list(map(int, open(price_file_name, 'r').readline().split(',')))
 
         self.instances = []
         if len(list(nx.simple_cycles(self.G))) > 0:
-            print
-            'the DAG contains cycles!'
+            print('the DAG contains cycles!')
         d_list = []
 
         deadline = open(deadline_file_name, 'r').readline()
@@ -146,8 +135,7 @@ class Workflow():
         for u, v in self.G.edges():
             G1.add_weighted_edges_from([(u + 1, v + 1, self.G[u][v]['weight'])])
 
-        print
-        "Add entry node to graph"
+        print("Add entry node to graph")
         name = "t" + str(0)
         G1.add_node(0, order=0, name=name, est=-1, eft=-1, lst=-1, lft=-1)
         endnodes = []
@@ -162,8 +150,7 @@ class Workflow():
 
     def add_exit_node(self):
 
-        print
-        "Add exit node to graph"
+        print("Add exit node to graph")
         name = "t" + str(self.vertex_num)
         self.G.add_node(self.vertex_num, order=self.vertex_num - 1, name=name, est=-1, eft=-1, lst=-1, lft=-1)
         startnodes = []
@@ -201,17 +188,15 @@ class Workflow():
         if len(pcp) == 0:
             sys.exit("\nERROR **** No critical path found ****\n")
         criticalpath_time = 0
-        for j in xrange(0, len(pcp) - 1):
+        for j in range(0, len(pcp) - 1):
             criticalpath_time += (self.G.node[pcp[j]]["eft"] - self.G.node[pcp[j]]["est"])
             throughput = self.G[pcp[j]][pcp[j + 1]]["weight"]
             criticalpath_time += throughput
         criticalpath_time += (self.G.node[pcp[len(pcp) - 1]]["eft"] - self.G.node[pcp[len(pcp) - 1]]["est"])
-        print
-        "\nTime critical path:" + str(criticalpath_time)
+        print("\nTime critical path:" + str(criticalpath_time))
         if perc_deadline > 0:
             self.deadline = int(100. * float(criticalpath_time) / float(perc_deadline))
-            print
-            "New deadline: ", self.deadline
+            print("New deadline: ", self.deadline)
             self.G.node[0]['est'] = 0
             self.G.node[0]['eft'] = self.p_table[0, 0]
             self.cal_est(0)
@@ -219,8 +204,7 @@ class Workflow():
             self.G.node[self.vertex_num - 1]['lst'] = int(self.deadline) - self.p_table[0, self.vertex_num - 1]
             self.cal_lft(self.vertex_num - 1)
         else:
-            print
-            "Deadline: ", self.deadline
+            print("Deadline: ", self.deadline)
 
     def getCriticalParent(self, d):
 
@@ -230,7 +214,7 @@ class Workflow():
         p_iter = self.G.predecessors(d)
         while True:
             try:
-                p = p_iter.next()
+                p = next(p_iter)
 
                 ctime = self.G.node[p]["eft"]
                 ctime += self.G[p][d]["weight"]
@@ -249,7 +233,7 @@ class Workflow():
         c_iter = self.G.successors(i)
         while True:
             try:
-                c = c_iter.next()
+                c = next(c_iter)
                 successors.append(c)
             except StopIteration:
                 break
@@ -267,7 +251,7 @@ class Workflow():
         c_iter = self.G.predecessors(d)
         while True:
             try:
-                p = c_iter.next()
+                p = next(c_iter)
                 predecessors.append(p)
             except StopIteration:
                 break
@@ -293,7 +277,7 @@ class Workflow():
         c_iter = self.G.predecessors(i)
         while True:
             try:
-                p = c_iter.next()
+                p = next(c_iter)
                 predecessors.append(p)
             except StopIteration:
                 break
@@ -308,8 +292,7 @@ class Workflow():
                 break
             pcp = []
             self.find_critical_path(i, pcp)
-            print
-            "critical path:", pcp
+            print("critical path:", pcp)
             assigned_vm = self.assign_path(pcp)
             if not assigned_vm == -2 and not assigned_vm == -1:
                 self.G.node[pcp[len(pcp) - 1]]['eft'] = self.G.node[pcp[len(pcp) - 1]]['est'] + self.p_table[
@@ -321,8 +304,7 @@ class Workflow():
                 ni = NewInstance(assigned_vm, self.G.node[pcp[len(pcp) - 1]]['est'], self.G.node[pcp[0]]['eft'], pcp)
                 self.instances.append(ni)
             elif assigned_vm == -1:
-                print
-                "the available resources cannot meet the deadline with the IC-PCP algorithm"
+                print("the available resources cannot meet the deadline with the IC-PCP algorithm")
                 self.successful = 1
                 break
                 # sys.exit()
@@ -498,12 +480,12 @@ class Workflow():
         cheapest_sum = 9999999  # the initialized value should be a very large number
         chosen_instance = self.choose_exist_instance(pcp)
         if chosen_instance == None:  # no existing instance for the pcp
-            for i in xrange(self.p_table.shape[
-                                0]):  # use the the shape of the performance table to identify how many VM types are there
+            for i in range(self.p_table.shape[
+                               0]):  # use the the shape of the performance table to identify how many VM types are there
                 violate_LFT = 0
                 start = self.G.node[pcp[len(pcp) - 1]]['est']
                 cost_sum = 0
-                for j in xrange(len(pcp) - 1, -1, -1):
+                for j in range(len(pcp) - 1, -1, -1):
                     cost_sum += self.p_table[i, pcp[j]] * self.vm_price[i]
                     start = start + self.p_table[i, pcp[j]]
                     if self.G.node[pcp[j]]['lft'] < start:
@@ -512,26 +494,26 @@ class Workflow():
                 if violate_LFT == 0 and cost_sum < cheapest_sum:
                     cheapest_vm = i
                     cheapest_sum = cost_sum
-            for i in xrange(len(pcp)):
+            for i in range(len(pcp)):
                 self.assigned_list[pcp[i]] = cheapest_vm
             # adjust est pcp
             est = self.G.node[pcp[len(pcp) - 1]]['est']
             self.G.node[pcp[len(pcp) - 1]]['eft'] = est + self.p_table[cheapest_vm, pcp[len(pcp) - 1]]
-            for j in xrange(len(pcp) - 2, -1, -1):
+            for j in range(len(pcp) - 2, -1, -1):
                 est = self.G.node[pcp[j + 1]]['eft']
                 self.G.node[pcp[j]]['est'] = est
                 self.G.node[pcp[j]]['eft'] = est + self.p_table[cheapest_vm, pcp[j]]
             # adjust lft pcp
             lft = self.G.node[pcp[0]]['lft']
             self.G.node[pcp[0]]['lst'] = lft - self.p_table[cheapest_vm, pcp[0]]
-            for j in xrange(1, len(pcp)):
+            for j in range(1, len(pcp)):
                 lft = self.G.node[pcp[j - 1]]['lst']
                 self.G.node[pcp[j]]['lft'] = lft
                 self.G.node[pcp[j]]['lst'] = lft - self.p_table[cheapest_vm, pcp[j]]
             return cheapest_vm
         else:  # found an instance that
             chosen_instance.task_list += pcp
-            for i in xrange(len(pcp)):
+            for i in range(len(pcp)):
                 self.assigned_list[pcp[i]] = chosen_instance.vm_type
             # update est and eft of the pcp head node
             head_pcp = pcp[len(pcp) - 1]
@@ -549,14 +531,14 @@ class Workflow():
                 self.assigned_list[head_pcp], head_pcp]
             est = self.G.node[pcp[len(pcp) - 1]]['est']
             self.G.node[pcp[len(pcp) - 1]]['eft'] = est + self.p_table[chosen_instance.vm_type, pcp[len(pcp) - 1]]
-            for j in xrange(len(pcp) - 2, -1, -1):
+            for j in range(len(pcp) - 2, -1, -1):
                 est = self.G.node[pcp[j + 1]]['eft']
                 self.G.node[pcp[j]]['est'] = est
                 self.G.node[pcp[j]]['eft'] = est + self.p_table[chosen_instance.vm_type, pcp[j]]
             # adjust lft pcp
             lft = self.G.node[pcp[0]]['lft']
             self.G.node[pcp[0]]['lst'] = lft - self.p_table[chosen_instance.vm_type, pcp[0]]
-            for j in xrange(1, len(pcp)):
+            for j in range(1, len(pcp)):
                 lft = self.G.node[pcp[j - 1]]['lst']
                 self.G.node[pcp[j]]['lft'] = lft
                 self.G.node[pcp[j]]['lst'] = lft - self.p_table[chosen_instance.vm_type, pcp[j]]
@@ -567,7 +549,7 @@ class Workflow():
 
     def generate_string(self, node):
         s = "name " + str(node) + "\n"
-        for i in xrange(len(self.vm_price)):
+        for i in range(len(self.vm_price)):
             s = s + str(self.p_table[i, node]) + "\n"
         s = s + "assigned vm: " + str(self.assigned_list[node] + 1)
         return s
@@ -606,138 +588,104 @@ class Workflow():
     def dumpJSON(self):
         start = 0
         end = self.vertex_num - 1
-        print
-        "{"
-        print
-        "  \"nodes\": ["
-        for u in xrange(start, end):
-            print
-            "        { \"order\":", str(self.G.node[u]["order"]) + ","
-            print
-            "          \"name\":", "\"" + self.G.node[u]["name"] + "\","
-            print
-            "          \"EST\":", str(self.G.node[u]["est"]) + ","
-            print
-            "          \"EFT\":", str(self.G.node[u]["eft"]) + ","
-            print
-            "          \"LST\":", str(self.G.node[u]["lst"]) + ","
-            print
-            "          \"LFT\":", str(self.G.node[u]["lft"])
-            print
-            "        },"
+        print("{")
+        print("  \"nodes\": [")
+        for u in range(start, end):
+            print("        { \"order\":", str(self.G.node[u]["order"]) + ",")
+            print("          \"name\":", "\"" + self.G.node[u]["name"] + "\",")
+            print("          \"EST\":", str(self.G.node[u]["est"]) + ",")
+            print("          \"EFT\":", str(self.G.node[u]["eft"]) + ",")
+            print("          \"LST\":", str(self.G.node[u]["lst"]) + ",")
+            print("          \"LFT\":", str(self.G.node[u]["lft"]))
+            print("        },")
 
-        print
-        "        { \"order\":", str(self.G.node[end]["order"]) + ","
-        print
-        "          \"name\":", "\"" + self.G.node[end]["name"] + "\","
-        print
-        "          \"EST\":", str(self.G.node[end]["est"]) + ","
-        print
-        "          \"EFT\":", str(self.G.node[end]["eft"]) + ","
-        print
-        "          \"LST\":", str(self.G.node[end]["lst"]) + ","
-        print
-        "          \"LFT\":", str(self.G.node[end]["lft"])
-        print
-        "        }"
-        print
-        "  ],"
-        print
-        "  \"links\": ["
+        print("        { \"order\":", str(self.G.node[end]["order"]) + ",")
+        print("          \"name\":", "\"" + self.G.node[end]["name"] + "\",")
+        print("          \"EST\":", str(self.G.node[end]["est"]) + ",")
+        print("          \"EFT\":", str(self.G.node[end]["eft"]) + ",")
+        print("          \"LST\":", str(self.G.node[end]["lst"]) + ",")
+        print("          \"LFT\":", str(self.G.node[end]["lft"]))
+        print("        }")
+        print("  ],")
+        print("  \"links\": [")
 
         num_edges = self.G.number_of_edges()
         nedge = 0
         for (u, v) in self.G.edges():
             nedge += 1
-            print
-            "        { \"source\":", "\"" + self.G.node[u]["name"] + "\","
-            print
-            "          \"target\":", "\"" + self.G.node[v]["name"] + "\","
-            print
-            "          \"throughput\":", str(self.G[u][v]["weight"])
+            print("        { \"source\":", "\"" + self.G.node[u]["name"] + "\",")
+            print("          \"target\":", "\"" + self.G.node[v]["name"] + "\",")
+            print("          \"throughput\":", str(self.G[u][v]["weight"]))
             if nedge < num_edges:
-                print
-                "        },"
+                print("        },")
             else:
-                print
-                "        }"
+                print("        }")
 
-        print
-        "    ]"
-        print
-        "}"
+        print("    ]")
+        print("}")
 
     def printGraphTimes(self):
 
         trow = "\nname     "
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
             trow += self.G.node[n]["name"]
             trow += "  "
-        print
-        trow
+        print(trow)
 
         trow = "VM       "
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
             trow += str(self.assigned_list[n])
             trow += "  "
-        print
-        trow
+        print(trow)
 
         trow = "perf     "
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
             vm = self.assigned_list[n]
             if vm < 0:
                 vm = 0
             trow += str(self.p_table[vm, n])
             trow += "  "
-        print
-        trow
+        print(trow)
 
         trow = "\nEST      "
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
             trow += str(self.G.node[n]["est"])
             trow += "  "
-        print
-        trow
+        print(trow)
 
         trow = "EFT      "
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
             trow += str(self.G.node[n]["eft"])
             trow += "  "
-        print
-        trow
+        print(trow)
 
         trow = "LST      "
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
             trow += str(self.G.node[n]["lst"])
             trow += "  "
-        print
-        trow
+        print(trow)
 
         trow = "LFT      "
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
             trow += str(self.G.node[n]["lft"])
             trow += "  "
-        print
-        trow + "\n"
+        print(trow + "\n")
 
         trow = "EFT-EST  "
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
             trow += str(self.G.node[n]["eft"] - self.G.node[n]["est"])
             trow += "  "
-        print
-        trow
+        print(trow)
 
         trow = "LFT-LST  "
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
             trow += str(self.G.node[n]["lft"] - self.G.node[n]["lst"])
             trow += "  "
-        print
-        trow + "\n"
+        print(trow + "\n")
 
     def getStartCost(self):
         cost = 0
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
             cost += self.vm_price[0] * (self.G.node[n]["eft"] - self.G.node[n]["est"])
         return (cost, self.G.node[self.vertex_num - 1]["eft"])
 
@@ -746,8 +694,7 @@ class Workflow():
         nS3 = 0
         nS2 = 0
         nS1 = 0
-        print
-        "\nPCP solution for task graph with " + str(self.vertex_num) + " nodes"
+        print("\nPCP solution for task graph with " + str(self.vertex_num) + " nodes")
         rstr = ""
         if len(self.instances) > 0:
             rstr += "\n        Start time    Stop time    Duration    Inst cost    Assigned tasks"
@@ -778,37 +725,33 @@ class Workflow():
                 for j in task_list:
                     pcp_str += " " + self.G.node[j]["name"]
                 rstr += "       " + pcp_str
-        print
-        rstr
+        print(rstr)
 
         tot_non_inst = 0
         extra_cost = 0
-        print
-        "\ntotal instance cost: " + str(total_cost)
+        print("\ntotal instance cost: " + str(total_cost))
         if (nodes_in_inst != self.vertex_num):
             nonp = self.getNonInstanceNodes()
             nonstr = ""
             # print nonp
-            for j in xrange(0, self.vertex_num):
+            for j in range(0, self.vertex_num):
                 if nonp[j] == 0:
                     nonstr += "," + self.G.node[j]["name"]
                     extra_cost += (self.G.node[j]["eft"] - self.G.node[j]["est"]) * self.vm_price[0]
                     tot_non_inst += 1
-            print
-            "\n" + str(tot_non_inst) + " non instance nodes: " + nonstr[1:] + " with extra cost: " + str(extra_cost)
+            print("\n" + str(tot_non_inst) + " non instance nodes: " + nonstr[1:] + " with extra cost: " + str(
+                extra_cost))
             total_cost += extra_cost
         if tot_idle > 0:
-            print
-            "\nTotal cost for " + str(self.vertex_num) + " nodes: " + str(total_cost) + " with tot idle=" + str(
-                tot_idle)
+            print("\nTotal cost for " + str(self.vertex_num) + " nodes: " + str(total_cost) + " with tot idle=" + str(
+                tot_idle))
         else:
-            print
-            "\nTotal cost for " + str(self.vertex_num) + " nodes: " + str(total_cost)
+            print("\nTotal cost for " + str(self.vertex_num) + " nodes: " + str(total_cost))
         return
 
     def getNonInstanceNodes(self):
         nonp = []
-        for j in xrange(0, self.vertex_num):
+        for j in range(0, self.vertex_num):
             nonp.append(0)
         for c in self.instances:
             task_list = sorted(c.task_list)
@@ -823,7 +766,7 @@ class Workflow():
 
     def graphAssignEST(self, d):
         self.visited = []
-        for i in xrange(0, self.vertex_num):
+        for i in range(0, self.vertex_num):
             self.visited.append(0)
         self.graphCalcEFT(d)
 
@@ -841,7 +784,7 @@ class Workflow():
         c_iter = self.G.predecessors(d)
         while True:
             try:
-                p = c_iter.next()
+                p = next(c_iter)
                 predecessors.append(p)
             except StopIteration:
                 break
@@ -887,7 +830,7 @@ class Workflow():
 
     def graphAssignLFT(self, d):
         self.visited = []
-        for i in xrange(0, self.vertex_num):
+        for i in range(0, self.vertex_num):
             self.visited.append(0)
         self.graphCalcLST(d)
 
@@ -904,7 +847,7 @@ class Workflow():
         c_iter = self.G.successors(d)
         while True:
             try:
-                c = c_iter.next()
+                c = next(c_iter)
                 successors.append(c)
             except StopIteration:
                 break
@@ -955,7 +898,7 @@ class Workflow():
             return 0
 
     def graphCheckEST(self):
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
 
             (ninstance, nservice) = self.getInstanceAndService(n)
 
@@ -964,7 +907,7 @@ class Workflow():
             p_iter = self.G.predecessors(n)
             while True:
                 try:
-                    p = p_iter.next()
+                    p = next(p_iter)
                     (pinstance, pservice) = self.getInstanceAndService(p)
                     est = self.G.node[p]["eft"]
                     lcost = self.G[p][n]["weight"]
@@ -984,21 +927,19 @@ class Workflow():
 
             # node with no parents has zero EST
             if maxest > self.deadline:
-                print
-                "\n**** Wrong EST max: " + "EST(" + self.G.node[n]["name"] + ")=" + str(
+                print("\n**** Wrong EST max: " + "EST(" + self.G.node[n]["name"] + ")=" + str(
                     self.G.node[n]["est"]) + " and " + "EST(" + self.G.node[dominant_parent]["name"] + ")=" + str(
-                    maxest)
+                    maxest))
                 return -1
             elif self.G.node[n]["est"] < maxest:
-                print
-                "\n**** EST mismatch: " + "EST(" + self.G.node[n]["name"] + ")=" + str(
-                    self.G.node[n]["est"]) + " < " + "EST(" + self.G.node[dominant_parent]["name"] + ")=" + str(maxest)
+                print("\n**** EST mismatch: " + "EST(" + self.G.node[n]["name"] + ")=" + str(
+                    self.G.node[n]["est"]) + " < " + "EST(" + self.G.node[dominant_parent]["name"] + ")=" + str(maxest))
                 return -1
 
         return 0
 
     def graphCheckLFT(self):
-        for n in xrange(0, self.vertex_num):
+        for n in range(0, self.vertex_num):
 
             (ninstance, nservice) = self.getInstanceAndService(n)
 
@@ -1007,7 +948,7 @@ class Workflow():
             c_iter = self.G.successors(n)
             while True:
                 try:
-                    c = c_iter.next()
+                    c = next(c_iter)
                     (cinstance, cservice) = self.getInstanceAndService(c)
 
                     lft = self.G.node[c]["lst"]
@@ -1030,14 +971,13 @@ class Workflow():
 
             # node with no children has LFT equals deadline
             if minlft < 0:
-                print
-                "\n**** Negative LFT : " + "LFT(" + self.G.node[n]["name"] + ")=" + str(
-                    self.G.node[n]["lft"]) + " and " + "LFT(" + self.G.node[dominant_child]["name"] + ")=" + str(minlft)
+                print("\n**** Negative LFT : " + "LFT(" + self.G.node[n]["name"] + ")=" + str(
+                    self.G.node[n]["lft"]) + " and " + "LFT(" + self.G.node[dominant_child]["name"] + ")=" + str(
+                    minlft))
                 return -1
             elif self.G.node[n]["lft"] > minlft:
-                print
-                "\n**** LFT mismatch: " + "LFT(" + self.G.node[n]["name"] + ")=" + str(
-                    self.G.node[n]["lft"]) + " > " + "LFT(" + self.G.node[dominant_child]["name"] + ")=" + str(minlft)
+                print("\n**** LFT mismatch: " + "LFT(" + self.G.node[n]["name"] + ")=" + str(
+                    self.G.node[n]["lft"]) + " > " + "LFT(" + self.G.node[dominant_child]["name"] + ")=" + str(minlft))
                 return -1
 
         return 0
@@ -1045,24 +985,23 @@ class Workflow():
     def checkIdleTime(self):
         tot_idle = 0
         idles = "\n"
-        for i in xrange(0, len(self.instances)):
+        for i in range(0, len(self.instances)):
             inst = self.instances[i]
             task_list = sorted(inst.task_list)
             if len(task_list) > 1:
-                for j in xrange(0, len(task_list) - 1):
+                for j in range(0, len(task_list) - 1):
                     idle_time = self.G.node[task_list[j + 1]]["est"] - self.G.node[task_list[j]]["eft"]
                     if idle_time > 0:
                         tot_idle += idle_time
                         idles += "\n Instance[" + str(i) + "] constains idle time: " + "EST(" + \
                                  self.G.node[task_list[j + 1]]["name"] + ")-EFT(" + self.G.node[task_list[j]][
                                      "name"] + ")>0"
-        print
-        idles
+        print(idles)
         return tot_idle
 
     def getInstanceAndService(self, d):
         if len(self.instances) > 0:
-            for i in xrange(0, len(self.instances)):
+            for i in range(0, len(self.instances)):
                 inst = self.instances[i]
                 task_list = sorted(inst.task_list)
                 if d in task_list:
@@ -1118,8 +1057,7 @@ class Workflow():
 
 
 if __name__ == '__main__':
-    print
-    os.getcwd()
+    print(os.getcwd())
     wf = Workflow()
     workflow_file = ''
     performance_file = ''
@@ -1147,8 +1085,7 @@ if __name__ == '__main__':
     else:
         sys.exit("\nERROR - Missing option -f or --file.\n")
 
-    print
-    "Networkx" + nx.__version__
+    print("Networkx" + nx.__version__)
 
     '../input/workflow', '../input/performance.txt', '../input/price.txt', '../input/Deadline'
     wf.init(workflow_file, performance_file, price_file, deadline_file)
@@ -1156,13 +1093,11 @@ if __name__ == '__main__':
 
     start_cost, start_eft = wf.getStartCost()
     start_str = "start configuartion: cost=" + str(start_cost) + "  EFT(exit)=" + str(start_eft)
-    print
-    "\nStart situation"
+    print("\nStart situation")
     wf.printGraphTimes()
 
     wf.ic_pcp()
-    print
-    "\nEnd situation"
+    print("\nEnd situation")
     wf.printGraphTimes()
 
     # entry and exit node not part of PCP, so
@@ -1175,20 +1110,15 @@ if __name__ == '__main__':
     wf.updateGraphTimes()
 
     retVal = wf.checkGraphTimes()
-    print
-    "checkGraphTimes: retVal=" + str(retVal)
+    print("checkGraphTimes: retVal=" + str(retVal))
     tot_idle = wf.checkIdleTime()
-    print
-    "checkIdleTime: idle time=" + str(tot_idle)
+    print("checkIdleTime: idle time=" + str(tot_idle))
 
     wf.print_instances()
 
-    print
-    "\n" + start_str
+    print("\n" + start_str)
     if retVal == -1:
-        print
-        "\n**** Invalid final configuration ****"
+        print("\n**** Invalid final configuration ****")
     else:
         final_cost, final_eft = wf.cal_cost()
-        print
-        "final configuration: cost=" + str(final_cost) + "  EFT(exit)=" + str(final_eft)
+        print("final configuration: cost=" + str(final_cost) + "  EFT(exit)=" + str(final_eft))
