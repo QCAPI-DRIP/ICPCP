@@ -1,0 +1,37 @@
+graph G {
+ranksep="0.25";
+pad=".75";
+nodesep="1.65";
+0 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 0\ntask: 33,29,23,14,12,10,6,3,2,1,\nstart_time: 0\nend_time: 1626"];
+0 -- 1;
+0 -- 2;
+0 -- 3;
+0 -- 4;
+0 -- 5;
+0 -- 6;
+0 -- 7;
+0 -- 8;
+0 -- 9;
+0 -- 11;
+0 -- 12;
+1 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 1\ntask: 7,5,\nstart_time: 173\nend_time: 414"];
+1 -- 2;
+1 -- 3;
+2 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 2\ntask: 8,26,\nstart_time: 351\nend_time: 533"];
+3 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 3\ntask: 9,\nstart_time: 439\nend_time: 556"];
+4 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 4\ntask: 4,27,\nstart_time: 188\nend_time: 854"];
+5 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 5\ntask: 22,18,13,11,\nstart_time: 90\nend_time: 618"];
+5 -- 11;
+5 -- 13;
+5 -- 14;
+6 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 6\ntask: 32,\nstart_time: 1770\nend_time: 1947"];
+7 [style=filled, fillcolor=green, label="vm_type: 1\nvm: 7\ntask: 30,\nstart_time: 1829\nend_time: 1842"];
+8 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 8\ntask: 31,\nstart_time: 1671\nend_time: 1814"];
+9 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 9\ntask: 28,25,16,\nstart_time: 1178\nend_time: 1535"];
+9 -- 10;
+10 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 10\ntask: 24,\nstart_time: 1330\nend_time: 1491"];
+11 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 11\ntask: 19,17,\nstart_time: 1070\nend_time: 1370"];
+12 [style=filled, fillcolor=green, label="vm_type: 1\nvm: 12\ntask: 15,\nstart_time: 1115\nend_time: 1150"];
+13 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 13\ntask: 20,\nstart_time: 488\nend_time: 572"];
+14 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 14\ntask: 21,\nstart_time: 357\nend_time: 411"];
+}

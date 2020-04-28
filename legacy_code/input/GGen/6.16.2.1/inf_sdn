@@ -1,0 +1,25 @@
+graph G {
+ranksep="1.25";
+pad="2.75";
+nodesep="1.65";
+switch [shape=box, style=filled, fillcolor=pink];
+controller [shape=diamond, style=filled, fillcolor=orange];
+switch0 [shape=box, style=filled, fillcolor=pink];
+0 [shape=circle, style=filled, fillcolor=yellow];
+0 -- switch0  [color=black];
+1 [shape=circle, style=filled, fillcolor=yellow];
+1 -- switch0  [color=black];
+3 [shape=circle, style=filled, fillcolor=green];
+3 -- switch0  [color=black];
+2 [shape=circle, style=filled, fillcolor=yellow];
+2 -- switch0  [color=black];
+4 [shape=circle, style=filled, fillcolor=yellow];
+4 -- switch0  [color=black];
+6 [shape=circle, style=filled, fillcolor=yellow];
+6 -- switch0  [color=black];
+switch0 -- switch  [color=blue];
+switch0 -- controller  [color=green];
+6 [shape=circle, style=filled, fillcolor=yellow];
+5 -- switch  [color=black];
+switch -- controller  [color=green];
+}

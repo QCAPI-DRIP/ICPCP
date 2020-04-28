@@ -1,0 +1,17 @@
+digraph G {
+ranksep="0.25";
+pad=".75";
+nodesep="1.65";
+0 [style=filled, fillcolor=red];
+1 [style=filled, fillcolor=red];
+2 [style=filled, fillcolor=red];
+3 [style=filled, fillcolor=red];
+4 [style=filled, fillcolor=red];
+5 [style=filled, fillcolor=red];
+0 -> 1  [label=0];
+1 -> 2  [label=68];
+2 -> 3  [label=35];
+2 -> 4  [label=17];
+3 -> 5  [label=0];
+4 -> 5  [label=0];
+}

@@ -1,0 +1,29 @@
+digraph dag {
+	0 -> 1	[weight=10.0];
+	0 -> 2	[weight=14.0];
+	0 -> 3	[weight=12.0];
+	0 -> 4	[weight=13.0];
+	0 -> 5	[weight=12.0];
+	1 -> 6	[weight=5.0];
+	2 -> 7	[weight=14.0];
+	3 -> 8	[weight=7.0];
+	4 -> 9	[weight=7.0];
+	5 -> 10	[weight=14.0];
+	6 -> 11	[weight=6.0];
+	7 -> 12	[weight=8.0];
+	8 -> 13	[weight=11.0];
+	9 -> 14	[weight=5.0];
+	10 -> 15	[weight=7.0];
+	11 -> 16	[weight=5.0];
+	12 -> 17	[weight=6.0];
+	13 -> 18	[weight=5.0];
+	14 -> 19	[weight=12.0];
+	15 -> 20	[weight=9.0];
+	16 -> 21	[weight=11.0];
+	17 -> 21	[weight=5.0];
+	18 -> 21	[weight=9.0];
+	19 -> 21	[weight=14.0];
+	20 -> 21	[weight=13.0];
+	21 -> 22	[weight=9.0];
+	22 -> 23	[weight=5.0];
+}

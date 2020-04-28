@@ -1,0 +1,15 @@
+digraph G {
+ranksep="0.25";
+pad=".75";
+nodesep="1.65";
+3 [style=filled, fillcolor=yellow, label="name 3\n83\n175\n292\nassigned vm: 3"];
+2 [style=filled, fillcolor=yellow, label="name 2\n3\n4\n6\nassigned vm: 3"];
+1 [style=filled, fillcolor=yellow, label="name 1\n10\n22\n44\nassigned vm: 3"];
+4 [style=filled, fillcolor=yellow, label="name 4\n34\n75\n84\nassigned vm: 3"];
+0 -> 1  [label=0];
+1 -> 2  [label=59];
+2 -> 3  [label=167];
+2 -> 4  [label=95];
+3 -> 5  [label=0];
+4 -> 5  [label=0];
+}

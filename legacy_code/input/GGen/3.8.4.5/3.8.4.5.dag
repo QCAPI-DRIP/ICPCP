@@ -1,0 +1,29 @@
+digraph G {
+ranksep="0.25";
+pad=".75";
+nodesep="1.65";
+0 [style=filled, fillcolor=red];
+1 [style=filled, fillcolor=red];
+2 [style=filled, fillcolor=red];
+3 [style=filled, fillcolor=red];
+4 [style=filled, fillcolor=red];
+5 [style=filled, fillcolor=red];
+6 [style=filled, fillcolor=red];
+7 [style=filled, fillcolor=red];
+8 [style=filled, fillcolor=red];
+9 [style=filled, fillcolor=red];
+0 -> 1  [label=0];
+1 -> 8  [label=58];
+1 -> 2  [label=144];
+1 -> 3  [label=43];
+1 -> 7  [label=167];
+2 -> 5  [label=195];
+2 -> 6  [label=174];
+3 -> 4  [label=69];
+4 -> 8  [label=3];
+4 -> 7  [label=103];
+5 -> 6  [label=111];
+6 -> 8  [label=133];
+7 -> 9  [label=0];
+8 -> 9  [label=0];
+}

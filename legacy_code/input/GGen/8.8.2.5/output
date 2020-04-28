@@ -1,0 +1,25 @@
+digraph G {
+ranksep="0.25";
+pad=".75";
+nodesep="1.65";
+6 [style=filled, fillcolor=yellow, label="name 6\n61\n73\n130\nassigned vm: 3"];
+5 [style=filled, fillcolor=yellow, label="name 5\n2\n3\n4\nassigned vm: 3"];
+4 [style=filled, fillcolor=yellow, label="name 4\n16\n17\n24\nassigned vm: 3"];
+2 [style=filled, fillcolor=yellow, label="name 2\n22\n28\n33\nassigned vm: 3"];
+1 [style=filled, fillcolor=yellow, label="name 1\n33\n36\n84\nassigned vm: 3"];
+3 [style=filled, fillcolor=yellow, label="name 3\n15\n20\n31\nassigned vm: 3"];
+8 [style=filled, fillcolor=yellow, label="name 8\n41\n63\n88\nassigned vm: 3"];
+7 [style=filled, fillcolor=yellow, label="name 7\n23\n32\n37\nassigned vm: 3"];
+0 -> 1  [label=0];
+1 -> 2  [label=117];
+1 -> 5  [label=3];
+2 -> 3  [label=47];
+2 -> 4  [label=169];
+3 -> 5  [label=9];
+4 -> 5  [label=166];
+4 -> 7  [label=142];
+5 -> 6  [label=187];
+6 -> 9  [label=0];
+7 -> 8  [label=58];
+8 -> 9  [label=0];
+}

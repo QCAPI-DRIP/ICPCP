@@ -1,0 +1,12 @@
+graph G {
+ranksep="0.25";
+pad=".75";
+nodesep="1.65";
+0 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 0\ntask: 16,15,12,11,9,8,7,6,4,3,1,\nstart_time: 0\nend_time: 1850"];
+0 -- 1;
+0 -- 2;
+0 -- 3;
+1 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 1\ntask: 5,\nstart_time: 330\nend_time: 348"];
+2 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 2\ntask: 2,\nstart_time: 118\nend_time: 249"];
+3 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 3\ntask: 10,14,13,\nstart_time: 1358\nend_time: 1498"];
+}

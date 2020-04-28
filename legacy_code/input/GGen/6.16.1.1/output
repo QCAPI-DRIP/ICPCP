@@ -1,0 +1,38 @@
+digraph G {
+ranksep="0.25";
+pad=".75";
+nodesep="1.65";
+16 [style=filled, fillcolor=yellow, label="name 16\n47\n75\n85\nassigned vm: 3"];
+15 [style=filled, fillcolor=yellow, label="name 15\n82\n127\n190\nassigned vm: 3"];
+14 [style=filled, fillcolor=yellow, label="name 14\n56\n64\n66\nassigned vm: 3"];
+13 [style=filled, fillcolor=yellow, label="name 13\n78\n139\n156\nassigned vm: 3"];
+12 [style=filled, fillcolor=yellow, label="name 12\n19\n23\n27\nassigned vm: 3"];
+11 [style=filled, fillcolor=yellow, label="name 11\n98\n107\n132\nassigned vm: 3"];
+10 [style=filled, fillcolor=yellow, label="name 10\n30\n50\n56\nassigned vm: 3"];
+9 [style=filled, fillcolor=yellow, label="name 9\n100\n107\n213\nassigned vm: 3"];
+8 [style=filled, fillcolor=yellow, label="name 8\n92\n147\n264\nassigned vm: 3"];
+7 [style=filled, fillcolor=yellow, label="name 7\n1\n2\n4\nassigned vm: 3"];
+6 [style=filled, fillcolor=yellow, label="name 6\n27\n60\n62\nassigned vm: 3"];
+5 [style=filled, fillcolor=yellow, label="name 5\n92\n125\n221\nassigned vm: 3"];
+4 [style=filled, fillcolor=yellow, label="name 4\n57\n58\n62\nassigned vm: 3"];
+3 [style=filled, fillcolor=yellow, label="name 3\n74\n130\n172\nassigned vm: 3"];
+2 [style=filled, fillcolor=yellow, label="name 2\n10\n11\n14\nassigned vm: 3"];
+1 [style=filled, fillcolor=yellow, label="name 1\n65\n84\n106\nassigned vm: 3"];
+0 -> 1  [label=0];
+1 -> 2  [label=144];
+2 -> 3  [label=109];
+3 -> 4  [label=178];
+4 -> 5  [label=44];
+5 -> 6  [label=29];
+6 -> 7  [label=150];
+7 -> 8  [label=12];
+8 -> 9  [label=13];
+9 -> 10  [label=75];
+10 -> 11  [label=51];
+11 -> 12  [label=36];
+12 -> 13  [label=29];
+13 -> 14  [label=8];
+14 -> 15  [label=11];
+15 -> 16  [label=56];
+16 -> 17  [label=0];
+}

@@ -1,0 +1,10 @@
+graph G {
+ranksep="1.25";
+pad="2.75";
+nodesep="1.65";
+switch [shape=box, style=filled, fillcolor=pink];
+controller [shape=diamond, style=filled, fillcolor=orange];
+0 [shape=circle, style=filled, fillcolor=red];
+0 -- switch  [color=black];
+switch -- controller  [color=green];
+}

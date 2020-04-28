@@ -1,0 +1,12 @@
+digraph dag {
+	0 -> 1	 [weight=20.0];
+	0 -> 2	 [weight=50.0];
+	1 -> 3	 [weight=95.0];
+	1 -> 4	 [weight=100.0];
+	2 -> 5	 [weight=30.0];
+	3 -> 6	 [weight=50.0];
+	4 -> 7	 [weight=100.0];
+	5 -> 8	 [weight=50.0];
+	6 -> 7	 [weight=10.0];
+	7 -> 8	 [weight=60.0];
+}

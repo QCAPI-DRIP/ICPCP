@@ -1,0 +1,6 @@
+graph G {
+ranksep="0.25";
+pad=".75";
+nodesep="1.65";
+0 [style=filled, fillcolor=yellow, label="vm_type: 2\nvm: 0\ntask: 16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,\nstart_time: 0\nend_time: 2125"];
+}

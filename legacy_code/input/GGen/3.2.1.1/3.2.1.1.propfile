@@ -1,0 +1,3 @@
+digraph dag {
+	0 -> 1	 [weight=133.000000];
+}
