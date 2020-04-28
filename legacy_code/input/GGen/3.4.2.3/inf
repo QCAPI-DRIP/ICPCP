@@ -1,8 +1,0 @@
-graph G {
-ranksep="0.25";
-pad=".75";
-nodesep="1.65";
-0 [style=filled, fillcolor=red, label="vm_type: 0\nvm: 0\ntask: 4,3,1,\nstart_time: 0\nend_time: 373"];
-0 -- 1;
-1 [style=filled, fillcolor=green, label="vm_type: 1\nvm: 1\ntask: 2,\nstart_time: 129\nend_time: 161"];
-}
