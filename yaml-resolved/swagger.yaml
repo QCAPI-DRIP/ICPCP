@@ -21,6 +21,12 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CWLGit'
+            examples:
+              example_1:
+                value:
+                  url: https://bitbucket.org/markrobinson96/workflows.git
+                  branch: master
+                  path: /workflows/make-to-cwl/dna.cwl
         required: true
       responses:
         "400":
@@ -37,25 +43,9 @@ components:
     CWLGit:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-        petId:
-          type: integer
-          format: int64
-        quantity:
-          type: integer
-          format: int32
-        shipDate:
+        url:
           type: string
-          format: date-time
-        status:
+        branch:
           type: string
-          description: Order Status
-          enum:
-          - placed
-          - approved
-          - delivered
-        complete:
-          type: boolean
-          default: false
+        path:
+          type: string
