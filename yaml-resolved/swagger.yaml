@@ -7,35 +7,79 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  version: 0.0.1-oas3
+  version: 0.0.1
 servers:
 - url: /
 paths:
-  /workflow:
+  /cwl:
     post:
-      summary: upload a CWL workflow file
-      description: upload CWL workflow file
-      operationId: uploadCWL
+      summary: add a cwl workflow
+      operationId: addWorkflow
       requestBody:
+        description: Workflow git request
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              $ref: '#/components/schemas/body'
+              $ref: '#/components/schemas/CWLGit'
+            examples:
+              example_1:
+                value:
+                  url: https://bitbucket.org/markrobinson96/workflows.git
+                  branch: master
+                  path: /workflows/make-to-cwl/dna.cwl
+        required: true
+      responses:
+        "202":
+          description: CWLGit Accepted
+          content: {}
+        "400":
+          description: Invalid CWLGit
+          content: {}
+        "404":
+          description: git url not found
+          content: {}
+        "405":
+          description: CWLValidation exception
+          content: {}
+  /tosca/{cwl_id}:
+    get:
+      summary: get workflow plan as tosca
+      description: Returns a single pet
+      operationId: getToscaPlan
+      parameters:
+      - name: cwl_id
+        in: path
+        description: ID of CWLGit
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       responses:
         "200":
           description: successful operation
           content:
-            '*/*':
+            application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/ToscaTemplate'
+        "400":
+          description: Invalid ID supplied
+          content: {}
+        "404":
+          description: Pet not found
+          content: {}
 components:
   schemas:
-    body:
-      required:
-      - file
+    CWLGit:
       type: object
       properties:
-        file:
+        id:
           type: string
-          description: CWL workflow file
-          format: binary
+        url:
+          type: string
+        branch:
+          type: string
+        path:
+          type: string
+    ToscaTemplate:
+      type: object
