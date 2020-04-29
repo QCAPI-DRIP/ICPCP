@@ -14,9 +14,11 @@ class CWLGit(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, url: str=None, branch: str=None, path: str=None):  # noqa: E501
+    def __init__(self, id: str=None, url: str=None, branch: str=None, path: str=None):  # noqa: E501
         """CWLGit - a model defined in Swagger
 
+        :param id: The id of this CWLGit.  # noqa: E501
+        :type id: str
         :param url: The url of this CWLGit.  # noqa: E501
         :type url: str
         :param branch: The branch of this CWLGit.  # noqa: E501
@@ -25,16 +27,19 @@ class CWLGit(Model):
         :type path: str
         """
         self.swagger_types = {
+            'id': str,
             'url': str,
             'branch': str,
             'path': str
         }
 
         self.attribute_map = {
+            'id': 'id',
             'url': 'url',
             'branch': 'branch',
             'path': 'path'
         }
+        self._id = id
         self._url = url
         self._branch = branch
         self._path = path
@@ -49,6 +54,27 @@ class CWLGit(Model):
         :rtype: CWLGit
         """
         return util.deserialize_model(dikt, cls)
+
+    @property
+    def id(self) -> str:
+        """Gets the id of this CWLGit.
+
+
+        :return: The id of this CWLGit.
+        :rtype: str
+        """
+        return self._id
+
+    @id.setter
+    def id(self, id: str):
+        """Sets the id of this CWLGit.
+
+
+        :param id: The id of this CWLGit.
+        :type id: str
+        """
+
+        self._id = id
 
     @property
     def url(self) -> str:

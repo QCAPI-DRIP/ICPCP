@@ -4,3 +4,4 @@
 from __future__ import absolute_import
 # import models into model package
 from swagger_server.models.cwl_git import CWLGit
+from swagger_server.models.tosca_template import ToscaTemplate
