@@ -5,23 +5,24 @@ from __future__ import absolute_import
 from flask import json
 from six import BytesIO
 
+from swagger_server.models.cwl_git import CWLGit  # noqa: E501
 from swagger_server.test import BaseTestCase
 
 
 class TestDefaultController(BaseTestCase):
     """DefaultController integration test stubs"""
 
-    def test_upload_cwl(self):
-        """Test case for upload_cwl
+    def test_add_workflow(self):
+        """Test case for add_workflow
 
-        upload a CWL workflow file
+        add a cwl workflow
         """
-        data = dict(file='file_example')
+        body = CWLGit()
         response = self.client.open(
-            '/workflow',
+            '/cwl',
             method='POST',
-            data=data,
-            content_type='multipart/form-data')
+            data=json.dumps(body),
+            content_type='application/json')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
 
