@@ -7,35 +7,55 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  version: 0.0.1-oas3
+  version: 0.0.1
 servers:
 - url: /
 paths:
-  /workflow:
+  /cwl:
     post:
-      summary: upload a CWL workflow file
-      description: upload CWL workflow file
-      operationId: uploadCWL
+      summary: add a cwl workflow
+      operationId: addWorkflow
       requestBody:
+        description: Workflow git request
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              $ref: '#/components/schemas/body'
+              $ref: '#/components/schemas/CWLGit'
+        required: true
       responses:
-        "200":
-          description: successful operation
-          content:
-            '*/*':
-              schema:
-                type: string
+        "400":
+          description: Invalid CWLGit
+          content: {}
+        "404":
+          description: git url not found
+          content: {}
+        "405":
+          description: CWL  Validation exception
+          content: {}
 components:
   schemas:
-    body:
-      required:
-      - file
+    CWLGit:
       type: object
       properties:
-        file:
+        id:
+          type: integer
+          format: int64
+        petId:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+          format: int32
+        shipDate:
           type: string
-          description: CWL workflow file
-          format: binary
+          format: date-time
+        status:
+          type: string
+          description: Order Status
+          enum:
+          - placed
+          - approved
+          - delivered
+        complete:
+          type: boolean
+          default: false
