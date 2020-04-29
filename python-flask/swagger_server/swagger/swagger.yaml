@@ -25,22 +25,6 @@ paths:
         explode: true
         schema:
           type: string
-      - name: branch
-        in: query
-        description: the git branch. default is mater
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: path
-        in: query
-        description: the git path.
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
       responses:
         "200":
           description: successful operation
