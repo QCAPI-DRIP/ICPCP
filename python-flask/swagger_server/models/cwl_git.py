@@ -14,45 +14,30 @@ class CWLGit(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id: int=None, pet_id: int=None, quantity: int=None, ship_date: datetime=None, status: str=None, complete: bool=False):  # noqa: E501
+    def __init__(self, url: str=None, branch: str=None, path: str=None):  # noqa: E501
         """CWLGit - a model defined in Swagger
 
-        :param id: The id of this CWLGit.  # noqa: E501
-        :type id: int
-        :param pet_id: The pet_id of this CWLGit.  # noqa: E501
-        :type pet_id: int
-        :param quantity: The quantity of this CWLGit.  # noqa: E501
-        :type quantity: int
-        :param ship_date: The ship_date of this CWLGit.  # noqa: E501
-        :type ship_date: datetime
-        :param status: The status of this CWLGit.  # noqa: E501
-        :type status: str
-        :param complete: The complete of this CWLGit.  # noqa: E501
-        :type complete: bool
+        :param url: The url of this CWLGit.  # noqa: E501
+        :type url: str
+        :param branch: The branch of this CWLGit.  # noqa: E501
+        :type branch: str
+        :param path: The path of this CWLGit.  # noqa: E501
+        :type path: str
         """
         self.swagger_types = {
-            'id': int,
-            'pet_id': int,
-            'quantity': int,
-            'ship_date': datetime,
-            'status': str,
-            'complete': bool
+            'url': str,
+            'branch': str,
+            'path': str
         }
 
         self.attribute_map = {
-            'id': 'id',
-            'pet_id': 'petId',
-            'quantity': 'quantity',
-            'ship_date': 'shipDate',
-            'status': 'status',
-            'complete': 'complete'
+            'url': 'url',
+            'branch': 'branch',
+            'path': 'path'
         }
-        self._id = id
-        self._pet_id = pet_id
-        self._quantity = quantity
-        self._ship_date = ship_date
-        self._status = status
-        self._complete = complete
+        self._url = url
+        self._branch = branch
+        self._path = path
 
     @classmethod
     def from_dict(cls, dikt) -> 'CWLGit':
@@ -66,135 +51,64 @@ class CWLGit(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def id(self) -> int:
-        """Gets the id of this CWLGit.
+    def url(self) -> str:
+        """Gets the url of this CWLGit.
 
 
-        :return: The id of this CWLGit.
-        :rtype: int
-        """
-        return self._id
-
-    @id.setter
-    def id(self, id: int):
-        """Sets the id of this CWLGit.
-
-
-        :param id: The id of this CWLGit.
-        :type id: int
-        """
-
-        self._id = id
-
-    @property
-    def pet_id(self) -> int:
-        """Gets the pet_id of this CWLGit.
-
-
-        :return: The pet_id of this CWLGit.
-        :rtype: int
-        """
-        return self._pet_id
-
-    @pet_id.setter
-    def pet_id(self, pet_id: int):
-        """Sets the pet_id of this CWLGit.
-
-
-        :param pet_id: The pet_id of this CWLGit.
-        :type pet_id: int
-        """
-
-        self._pet_id = pet_id
-
-    @property
-    def quantity(self) -> int:
-        """Gets the quantity of this CWLGit.
-
-
-        :return: The quantity of this CWLGit.
-        :rtype: int
-        """
-        return self._quantity
-
-    @quantity.setter
-    def quantity(self, quantity: int):
-        """Sets the quantity of this CWLGit.
-
-
-        :param quantity: The quantity of this CWLGit.
-        :type quantity: int
-        """
-
-        self._quantity = quantity
-
-    @property
-    def ship_date(self) -> datetime:
-        """Gets the ship_date of this CWLGit.
-
-
-        :return: The ship_date of this CWLGit.
-        :rtype: datetime
-        """
-        return self._ship_date
-
-    @ship_date.setter
-    def ship_date(self, ship_date: datetime):
-        """Sets the ship_date of this CWLGit.
-
-
-        :param ship_date: The ship_date of this CWLGit.
-        :type ship_date: datetime
-        """
-
-        self._ship_date = ship_date
-
-    @property
-    def status(self) -> str:
-        """Gets the status of this CWLGit.
-
-        Order Status  # noqa: E501
-
-        :return: The status of this CWLGit.
+        :return: The url of this CWLGit.
         :rtype: str
         """
-        return self._status
+        return self._url
 
-    @status.setter
-    def status(self, status: str):
-        """Sets the status of this CWLGit.
+    @url.setter
+    def url(self, url: str):
+        """Sets the url of this CWLGit.
 
-        Order Status  # noqa: E501
 
-        :param status: The status of this CWLGit.
-        :type status: str
+        :param url: The url of this CWLGit.
+        :type url: str
         """
-        allowed_values = ["placed", "approved", "delivered"]  # noqa: E501
-        if status not in allowed_values:
-            raise ValueError(
-                "Invalid value for `status` ({0}), must be one of {1}"
-                .format(status, allowed_values)
-            )
 
-        self._status = status
+        self._url = url
 
     @property
-    def complete(self) -> bool:
-        """Gets the complete of this CWLGit.
+    def branch(self) -> str:
+        """Gets the branch of this CWLGit.
 
 
-        :return: The complete of this CWLGit.
-        :rtype: bool
+        :return: The branch of this CWLGit.
+        :rtype: str
         """
-        return self._complete
+        return self._branch
 
-    @complete.setter
-    def complete(self, complete: bool):
-        """Sets the complete of this CWLGit.
+    @branch.setter
+    def branch(self, branch: str):
+        """Sets the branch of this CWLGit.
 
 
-        :param complete: The complete of this CWLGit.
-        :type complete: bool
+        :param branch: The branch of this CWLGit.
+        :type branch: str
         """
 
-        self._complete = complete
+        self._branch = branch
+
+    @property
+    def path(self) -> str:
+        """Gets the path of this CWLGit.
+
+
+        :return: The path of this CWLGit.
+        :rtype: str
+        """
+        return self._path
+
+    @path.setter
+    def path(self, path: str):
+        """Sets the path of this CWLGit.
+
+
+        :param path: The path of this CWLGit.
+        :type path: str
+        """
+
+        self._path = path
