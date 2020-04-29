@@ -39,16 +39,47 @@ paths:
           description: git url not found
           content: {}
         "405":
-          description: CWL  Validation exception
+          description: CWLValidation exception
+          content: {}
+  /tosca/{cwl_id}:
+    get:
+      summary: get workflow plan as tosca
+      description: Returns a single pet
+      operationId: getToscaPlan
+      parameters:
+      - name: cwl_id
+        in: path
+        description: ID of CWLGit
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToscaTemplate'
+        "400":
+          description: Invalid ID supplied
+          content: {}
+        "404":
+          description: Pet not found
           content: {}
 components:
   schemas:
     CWLGit:
       type: object
       properties:
+        id:
+          type: string
         url:
           type: string
         branch:
           type: string
         path:
           type: string
+    ToscaTemplate:
+      type: object
