@@ -29,6 +29,9 @@ paths:
                   path: /workflows/make-to-cwl/dna.cwl
         required: true
       responses:
+        "202":
+          description: CWLGit Accepted
+          content: {}
         "400":
           description: Invalid CWLGit
           content: {}
