@@ -11,48 +11,34 @@ info:
 servers:
 - url: /
 paths:
-  /cwl:
-    post:
-      summary: add a cwl workflow
-      operationId: addWorkflow
-      requestBody:
-        description: Workflow git request
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CWLGit'
-            examples:
-              example_1:
-                value:
-                  url: https://bitbucket.org/markrobinson96/workflows.git
-                  branch: master
-                  path: /workflows/make-to-cwl/dna.cwl
-        required: true
-      responses:
-        "202":
-          description: CWLGit Accepted
-          content: {}
-        "400":
-          description: Invalid CWLGit
-          content: {}
-        "404":
-          description: git url not found
-          content: {}
-        "405":
-          description: CWLValidation exception
-          content: {}
-  /tosca/{cwl_id}:
+  /tosca/:
     get:
       summary: get workflow plan as tosca
       description: Returns a single pet
       operationId: getToscaPlan
       parameters:
-      - name: cwl_id
-        in: path
-        description: ID of CWLGit
+      - name: git_url
+        in: query
+        description: cwl git url
         required: true
-        style: simple
-        explode: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: branch
+        in: query
+        description: the git branch. default is mater
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: path
+        in: query
+        description: the git path.
+        required: true
+        style: form
+        explode: true
         schema:
           type: string
       responses:
@@ -70,16 +56,5 @@ paths:
           content: {}
 components:
   schemas:
-    CWLGit:
-      type: object
-      properties:
-        id:
-          type: string
-        url:
-          type: string
-        branch:
-          type: string
-        path:
-          type: string
     ToscaTemplate:
       type: object
