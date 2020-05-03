@@ -11,7 +11,7 @@ import random
 import networkx as nx
 import numpy as np
 import json
-from NewInstance import NewInstance
+from legacy_code.NewInstance import NewInstance
 from subprocess import call
 import time
 from collections import deque
@@ -28,7 +28,6 @@ class Workflow():
 
     # The following two functions are to initialize the EST, EFT and LFT
     # calculate the earliest start time and earliest finish time
-
     def init(self, workflow_file_name, performance_file_name, price_file_name, deadline_file_name):
 
         # Initialization
@@ -123,6 +122,8 @@ class Workflow():
 
         deadline = open(deadline_file_name, 'r').readline()
         self.deadline = int(deadline)
+
+
 
     def add_entry_node(self):
         # copy grap
