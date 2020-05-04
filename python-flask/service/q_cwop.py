@@ -88,8 +88,34 @@ def cwlToDag(filelocation):
                                                     res = i.split('/')
                                                     if res[0] in tasks:
                                                         g.add_edge(res[0], task)
+                                        else:
+                                            if '/' in v2:
+                                                res = i.split('/')
+                                                if res[0] in tasks:
+                                                    g.add_edge(res[0], task)
+
             else:
-                raise ValueError('Invalid workflow, $graph is missing')
+                if 'steps' in data:
+                    steps = data['steps']
+                    for task, value in steps.items():
+                        tasks.append(task)
+                        g.add_node(task)
+                        for k, v in value.items():
+                        if k == 'in':
+                            if isinstance(v, list):
+                                for i in v:
+                                    if '/' in i:
+                                        res = i.split('/')
+                                        if res[0] in tasks:
+                                            g.add_edge(res[0], task)
+                            else:
+                                if '/' in v:
+                                    res = i.split('/')
+                                    if res[0] in tasks:
+                                        g.add_edge(res[0], task)
+
+
+                # raise ValueError('Invalid workflow, $graph is missing')
 
         except yaml.YAMLError as exc:
             print(exc)
@@ -98,6 +124,13 @@ def cwlToDag(filelocation):
 
 
 if __name__ == '__main__':
-    g = cwlToDag('compile1.cwl')
-    print(g.nodes())
-    print(g.edges())
+    #g = cwlToDag('compile1.cwl')
+    g2 = cwlToDag('lobSTR-workflow.cwl')
+
+    # with open('lobSTR-workflow.cwl', 'r') as stream:
+    #         data = yaml.safe_load(stream)
+    #         print(data)
+
+
+    #print(g.nodes())
+    #print(g.edges())
