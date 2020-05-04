@@ -43,38 +43,11 @@ class CwlParser:
                         if i['id'] == 'main':
                             steps = i['steps']
                             self.checkAndAddDependency(steps, self.g)
-                            # for task, value in steps.items():
-                            #     tasks.append(task)
-                            #     g.add_node(task)
-                            #     # print(task)
-                            #     for k, v in value.items():
-                            #         if k == 'in':
-                            #             for k2, v2 in v.items():
-                            #                 if isinstance(v2, list):
-                            #                     for j in v2:
-                            #                         checkAndAddDependency(j, tasks, task, g)
-                            #                 else:
-                            #                     checkAndAddDependency(v2, tasks, task, g)
 
                 else:
                     if 'steps' in data:
                         steps = data['steps']
                         self.checkAndAddDependency(steps)
-                        # for task, value in steps.items():
-                        #     tasks.append(task)
-                        #     g.add_node(task)
-                        #     for k, v in value.items():
-                        #         if k == 'in':
-                        #             if isinstance(v, list):
-                        #                 for i in v:
-                        #                     checkAndAddDependency(i, tasks, task, g)
-                        #
-                        #             elif isinstance(v, dict):
-                        #                 for k2, v2 in v.items():
-                        #                     checkAndAddDependency(v2, tasks, task, g)
-                        #
-                        #             else:
-                        #                 checkAndAddDependency(v, tasks, task, g)
 
                     # raise ValueError('Invalid workflow, $graph is missing')
 
