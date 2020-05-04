@@ -4,7 +4,7 @@ from toscaparser import shell as parser_shell
 from toscaparser.tosca_template import ToscaTemplate
 from legacy_code.ICPCP_TOSCA import Workflow
 import networkx as nx
-
+from legacy_code.cwlparser import CwlParser
 
 def save(file: FileStorage):
     dictionary = yaml.safe_load(file.stream)
@@ -64,6 +64,29 @@ def verifyTOSCA():
     template.verify_template()
 
 
+def checkAndAddDependency(steps, tasks, g):
+    for task, value in steps.items():
+        tasks.append(task)
+        g.add_node(task)
+        # print(task)
+        for k, v in value.items():
+            if k == 'in':
+                for k2, v2 in v.items():
+                    if isinstance(v2, list):
+                        for j in v2:
+                            checkAndAddDependency2(j, tasks, task, g)
+                    else:
+                        checkAndAddDependency2(v2, tasks, task, g)
+
+
+def checkAndAddDependency2(index, tasks, task, g):
+    if '/' in index:
+        res = index.split('/')
+        if res[0] in tasks:
+            g.add_edge(res[0], task)
+            return g
+
+
 def cwlToDag(filelocation):
     g = nx.DiGraph()
     with open(filelocation, 'r') as stream:
@@ -75,24 +98,19 @@ def cwlToDag(filelocation):
                 for i in graph:
                     if i['id'] == 'main':
                         steps = i['steps']
-                        for task, value in steps.items():
-                            tasks.append(task)
-                            g.add_node(task)
-                            # print(task)
-                            for k, v in value.items():
-                                if k == 'in':
-                                    for k2, v2 in v.items():
-                                        if isinstance(v2, list):
-                                            for i in v2:
-                                                if '/' in i:
-                                                    res = i.split('/')
-                                                    if res[0] in tasks:
-                                                        g.add_edge(res[0], task)
-                                        else:
-                                            if '/' in v2:
-                                                res = i.split('/')
-                                                if res[0] in tasks:
-                                                    g.add_edge(res[0], task)
+                        checkAndAddDependency(steps, tasks, g)
+                        # for task, value in steps.items():
+                        #     tasks.append(task)
+                        #     g.add_node(task)
+                        #     # print(task)
+                        #     for k, v in value.items():
+                        #         if k == 'in':
+                        #             for k2, v2 in v.items():
+                        #                 if isinstance(v2, list):
+                        #                     for j in v2:
+                        #                         checkAndAddDependency(j, tasks, task, g)
+                        #                 else:
+                        #                     checkAndAddDependency(v2, tasks, task, g)
 
             else:
                 if 'steps' in data:
@@ -101,19 +119,17 @@ def cwlToDag(filelocation):
                         tasks.append(task)
                         g.add_node(task)
                         for k, v in value.items():
-                        if k == 'in':
-                            if isinstance(v, list):
-                                for i in v:
-                                    if '/' in i:
-                                        res = i.split('/')
-                                        if res[0] in tasks:
-                                            g.add_edge(res[0], task)
-                            else:
-                                if '/' in v:
-                                    res = i.split('/')
-                                    if res[0] in tasks:
-                                        g.add_edge(res[0], task)
+                            if k == 'in':
+                                if isinstance(v, list):
+                                    for i in v:
+                                        checkAndAddDependency(i, tasks, task, g)
 
+                                elif isinstance(v, dict):
+                                    for k2, v2 in v.items():
+                                        checkAndAddDependency(v2, tasks, task, g)
+
+                                else:
+                                    checkAndAddDependency(v, tasks, task, g)
 
                 # raise ValueError('Invalid workflow, $graph is missing')
 
@@ -124,13 +140,18 @@ def cwlToDag(filelocation):
 
 
 if __name__ == '__main__':
-    #g = cwlToDag('compile1.cwl')
-    g2 = cwlToDag('lobSTR-workflow.cwl')
+    # g = cwlToDag('compile1.cwl')
+    # g2 = cwlToDag('lobSTR-workflow.cwl')
+    dag = CwlParser('lobSTR-workflow.cwl')
+    print(dag.g.nodes())
+    print(dag.g.edges())
+
 
     # with open('lobSTR-workflow.cwl', 'r') as stream:
     #         data = yaml.safe_load(stream)
     #         print(data)
-
-
-    #print(g.nodes())
-    #print(g.edges())
+    #
+    # print(g.nodes())
+    # print(g.edges())
+    # print(g2.nodes())
+    # print(g2.edges())
