@@ -64,24 +64,40 @@ def verifyTOSCA():
     template.verify_template()
 
 
-def getNumberOfTasks(filelocation):
+def cwlToDag(filelocation):
+    g = nx.DiGraph()
     with open(filelocation, 'r') as stream:
         try:
             data = yaml.safe_load(stream)
+            tasks = []
             if '$graph' in data:
                 graph = data['$graph']
                 for i in graph:
                     if i['id'] == 'main':
                         steps = i['steps']
-                        return len(steps)
+                        for task, value in steps.items():
+                            tasks.append(task)
+                            g.add_node(task)
+                            # print(task)
+                            for k, v in value.items():
+                                if k == 'in':
+                                    for k2, v2 in v.items():
+                                        if isinstance(v2, list):
+                                            for i in v2:
+                                                if '/' in i:
+                                                    res = i.split('/')
+                                                    if res[0] in tasks:
+                                                        g.add_edge(res[0], task)
             else:
                 raise ValueError('Invalid workflow, $graph is missing')
 
         except yaml.YAMLError as exc:
             print(exc)
 
+        return g
+
 
 if __name__ == '__main__':
-    #G = nx.DiGraph()
-    task_count = getNumberOfTasks('compile1.cwl')
-    print(task_count)
+    g = cwlToDag('compile1.cwl')
+    print(g.nodes())
+    print(g.edges())
