@@ -23,11 +23,23 @@ from optparse import OptionParser
 from networkx import DiGraph
 
 
-class Workflow():
+class Workflow:
 
 
     # The following two functions are to initialize the EST, EFT and LFT
     # calculate the earliest start time and earliest finish time
+    #
+    # def __int__(self, task_graph, performance_file_name, price_file_name, deadline_file_name):
+    #     self.visited = []
+    #     self.G = task_graph
+    #     self.vertex_num = 0
+    #     self.successful = 0
+    #     self.deadline = 0
+    #
+    #     for i in range(0, G.number_of_nodes())
+
+
+
     def init(self, workflow_file_name, performance_file_name, price_file_name, deadline_file_name):
 
         # Initialization
@@ -690,7 +702,7 @@ class Workflow():
             cost += self.vm_price[0] * (self.G.node[n]["eft"] - self.G.node[n]["est"])
         return (cost, self.G.node[self.vertex_num - 1]["eft"])
 
-    def print_instances(self):
+    def print_instances(self, tot_idle):
         total_cost = 0
         nS3 = 0
         nS2 = 0
