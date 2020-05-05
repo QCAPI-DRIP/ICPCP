@@ -5,6 +5,7 @@ from toscaparser.tosca_template import ToscaTemplate
 from legacy_code.ICPCP_TOSCA import Workflow
 import networkx as nx
 from legacy_code.cwlparser import CwlParser
+import os
 
 def save(file: FileStorage):
     dictionary = yaml.safe_load(file.stream)
@@ -17,11 +18,12 @@ def writeToYaml(services):
 
 def runICPC():
     wf = Workflow()
-    workflow_file = 'C:\\Users\\robin\\Documents\\GitHub\\Q-CWOP\\legacy_code\\input/pcp/pcp.dag'
-    performance_file = 'C:\\Users\\robin\\Documents\\GitHub\\Q-CWOP\\legacy_code\\input/pcp/performance'
-    price_file = 'C:\\Users\\robin\\Documents\\GitHub\\Q-CWOP\\legacy_code\\input/pcp/price'
-    deadline_file = 'C:\\Users\\robin\\Documents\\GitHub\\Q-CWOP\\legacy_code\\input/pcp/deadline'
-    infrastructure_file = 'C:\\Users\\robin\\Documents\\GitHub\\Q-CWOP\\legacy_code\\input/pcp/inf'
+    print(os.getcwd())
+    workflow_file = '../../legacy_code/input/pcp/pcp.dag'
+    performance_file = '../../legacy_code/input/pcp/performance'
+    price_file = '../../legacy_code/input/pcp/price'
+    deadline_file = '../../legacy_code/input/pcp/deadline'
+    infrastructure_file = '../../legacy_code/input/pcp/inf'
     wf.init(workflow_file, performance_file, price_file, deadline_file)
     wf.calc_startConfiguration(-1)
 
@@ -48,7 +50,7 @@ def runICPC():
     tot_idle = wf.checkIdleTime()
     print("checkIdleTime: idle time=" + str(tot_idle))
 
-    wf.print_instances()
+    wf.print_instances(tot_idle)
 
     print("\n" + start_str)
     if retVal == -1:
@@ -56,6 +58,8 @@ def runICPC():
     else:
         final_cost, final_eft = wf.cal_cost()
         print("final configuration: cost=" + str(final_cost) + "  EFT(exit)=" + str(final_eft))
+
+    return wf.instances
 
 
 def verifyTOSCA():
@@ -71,8 +75,9 @@ if __name__ == '__main__':
     dag = CwlParser('lobSTR-workflow.cwl')
     print(dag.g.nodes())
     print(dag.g.edges())
-
-
+    servers = runICPC()
+    for i in servers:
+        print(i.vm_type)
     # with open('lobSTR-workflow.cwl', 'r') as stream:
     #         data = yaml.safe_load(stream)
     #         print(data)
