@@ -3,7 +3,7 @@ from legacy_code.Errors.api_error import APIError
 import os
 from azure.cli.core import get_default_cli
 
-def requestData(message, key):
+def request_data(message, key):
     resp = requests.get(message, headers={'Authorization': '{}'.format(key)})
     if resp.status_code != 200:
         raise APIError(resp.text)
@@ -23,7 +23,7 @@ def get_azure_data(cli_input):
     return True
 
 
-def extractServers():
+def extract_servers():
     """Extract relevant server info from azure data"""
     pass
 

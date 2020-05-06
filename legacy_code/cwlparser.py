@@ -8,9 +8,9 @@ class CwlParser:
         self.filelocation = filelocation
         self.g = nx.DiGraph()
         self.tasks = []
-        self.cwlToDag()
+        self.cwl_to_dag()
 
-    def checkAndAddDependency(self, steps):
+    def check_and_add_dependencies(self, steps):
         for task, value in steps.items():
             self.tasks.append(task)
             self.g.add_node(task)
@@ -18,22 +18,22 @@ class CwlParser:
                 if k == 'in':
                     if isinstance(v, list):
                         for i in v:
-                            self.checkAndAddDependency2(i, task)
+                            self.add_dependencies(i, task)
 
                     elif isinstance(v, dict):
                         for k2, v2 in v.items():
-                            self.checkAndAddDependency2(v2, task)
+                            self.add_dependencies(v2, task)
 
                     else:
-                        self.checkAndAddDependency2(v, task)
+                        self.add_dependencies(v, task)
 
-    def checkAndAddDependency2(self, index, task):
+    def add_dependencies(self, index, task):
         if '/' in index:
             res = index.split('/')
             if res[0] in self.tasks:
                 self.g.add_edge(res[0], task)
 
-    def cwlToDag(self):
+    def cwl_to_dag(self):
         with open(self.filelocation, 'r') as stream:
             try:
                 data = yaml.safe_load(stream)
@@ -42,12 +42,12 @@ class CwlParser:
                     for i in graph:
                         if i['id'] == 'main':
                             steps = i['steps']
-                            self.checkAndAddDependency(steps, self.g)
+                            self.check_and_add_dependencies(steps, self.g)
 
                 else:
                     if 'steps' in data:
                         steps = data['steps']
-                        self.checkAndAddDependency(steps)
+                        self.check_and_add_dependencies(steps)
 
                     # raise ValueError('Invalid workflow, $graph is missing')
 
