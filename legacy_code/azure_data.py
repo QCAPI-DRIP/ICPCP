@@ -30,7 +30,7 @@ def extract_servers():
 if __name__ == '__main__':
     subscription_id = os.environ['AZURE_SUBSCRIPTION_ID']
     key = os.environ['AZURE_SECRET_KEY']
-    data = requestData(
+    data = request_data(
         'https://management.azure.com/subscriptions/{}/providers/Microsoft.Compute/skus?api-version=2019-04-01'.format(
             subscription_id), key)
     #print(data)
