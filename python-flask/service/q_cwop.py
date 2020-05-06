@@ -4,8 +4,10 @@ from toscaparser import shell as parser_shell
 from toscaparser.tosca_template import ToscaTemplate
 from legacy_code.ICPCP_TOSCA import Workflow
 import networkx as nx
-from legacy_code.cwlparser import CwlParser
+from icpc_planner.cwlparser import CwlParser
+
 import os
+
 
 def save(file: FileStorage):
     dictionary = yaml.safe_load(file.stream)
@@ -16,7 +18,7 @@ def writeToYaml(services):
         yaml.dump(services, outfile, default_flow_style=False)
 
 
-def runICPC():
+def run_icpc():
     wf = Workflow()
     print(os.getcwd())
     workflow_file = '../../legacy_code/input/pcp/pcp.dag'
@@ -62,27 +64,20 @@ def runICPC():
     return wf.instances
 
 
-def verifyTOSCA():
+def verify_tosca():
+    """Verify correctness of tosca template"""
     # parser_shell.main("tosca_parser --template-file=python-flask/service/test1.yaml")
-    template = ToscaTemplate(path="C:\\Users\\robin\\Documents\\GitHub\\Q-CWOP\\python-flask\\service\\test.yaml")
+    template = ToscaTemplate(path="test.yaml")
     template.verify_template()
 
 
-
 if __name__ == '__main__':
-    # g = cwlToDag('compile1.cwl')
-    # g2 = cwlToDag('lobSTR-workflow.cwl')
+    # Run cwl parser
     dag = CwlParser('lobSTR-workflow.cwl')
     print(dag.g.nodes())
     print(dag.g.edges())
-    servers = runICPC()
+
+    # Extract needed instances from icpc
+    servers = run_icpc()
     for i in servers:
         print(i.vm_type)
-    # with open('lobSTR-workflow.cwl', 'r') as stream:
-    #         data = yaml.safe_load(stream)
-    #         print(data)
-    #
-    # print(g.nodes())
-    # print(g.edges())
-    # print(g2.nodes())
-    # print(g2.edges())
