@@ -1127,7 +1127,7 @@ if __name__ == '__main__':
     tot_idle = wf.checkIdleTime()
     print("checkIdleTime: idle time=" + str(tot_idle))
 
-    wf.print_instances()
+    wf.print_instances(tot_idle)
 
     print("\n" + start_str)
     if retVal == -1:
