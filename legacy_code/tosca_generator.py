@@ -4,17 +4,19 @@ from legacy_code.NewInstance import NewInstance
 
 class ToscaGenerator:
 
-    def __init__(self, instances):
-        self.instances = instances
+    def __init__(self, ):
         self.template = None
 
-    def add_compute_node(self, name):
+    def add_compute_node(self, name, instance):
         "Compute nodes will be generated here"
-        properties = self.instances.properties
+        properties = instance.properties
         if self.template is not None:
-            mydict = {name : {'type' : "tosca.nodes.Compute", 'capabilities' : {'host' : {'properties' : properties}}}}
+            mydict = {'type' : "tosca.nodes.Compute", 'capabilities' : {'host' : {'properties' : properties}}}
             if 'topology_template' in self.template and 'node_templates' in self.template['topology_template']:
-                    self.template['topology_template']['node_templates'] = mydict
+                    if self.template['topology_template']['node_templates'] is None:
+                        self.template['topology_template']['node_templates'] = {name : mydict}
+                    else:
+                        self.template['topology_template']['node_templates'][name] = mydict
             else:
                 print("Invalid tosca template provided")
         else:
