@@ -5,3 +5,4 @@ class NewInstance(object):
         self.vm_end = vm_end
         self.task_list = pcp
         self.cost = 0
+        self.properties = {}
