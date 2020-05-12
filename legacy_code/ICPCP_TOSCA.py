@@ -40,7 +40,7 @@ class Workflow:
 
 
 
-    def init(self, workflow_file_name, performance_file_name, price_file_name, deadline_file_name):
+    def init(self, workflow_file_name, performance_file_name, price_file_name, deadline_file_name, dag=None):
 
         # Initialization
         self.visited = []
@@ -48,35 +48,39 @@ class Workflow:
         self.vertex_num = 0
         self.successful = 0
         self.deadline = 0
-        # Read the workflow information
-        with open(workflow_file_name, 'r') as f:
-            data = json.load(f)
-            f.close
 
-        for (key, value) in list(data.items()):
-            if isinstance(value, list):
-                if key == 'nodes':
-                    # self.vertex_num = len(value)
-                    # print "nodes:",value
-                    for node in value:
-                        self.G.add_node(self.vertex_num, order=node['order'], name=node['name'], est=-1, eft=-1, lst=-1,
-                                        lft=-1)
-                        self.vertex_num += 1
-                if key == 'links':
-                    # print "links:",value
-                    names = nx.get_node_attributes(self.G, 'name')
-                    # print names
+        if dag is None:
+            # Read the workflow information
+            with open(workflow_file_name, 'r') as f:
+                data = json.load(f)
+                f.close
 
-                    for link in value:
-                        s = -1
-                        t = -1
-                        for o, n in names.items():
-                            if n == link['source']:
-                                s = o
-                            if n == link['target']:
-                                t = o
-                        self.G.add_weighted_edges_from([(s, t, link['throughput'])])
+            for (key, value) in list(data.items()):
+                if isinstance(value, list):
+                    if key == 'nodes':
+                        # self.vertex_num = len(value)
+                        # print "nodes:",value
+                        for node in value:
+                            self.G.add_node(self.vertex_num, order=node['order'], name=node['name'], est=-1, eft=-1, lst=-1,
+                                            lft=-1)
+                            self.vertex_num += 1
+                    if key == 'links':
+                        # print "links:",value
+                        names = nx.get_node_attributes(self.G, 'name')
+                        # print names
 
+                        for link in value:
+                            s = -1
+                            t = -1
+                            for o, n in names.items():
+                                if n == link['source']:
+                                    s = o
+                                if n == link['target']:
+                                    t = o
+                            self.G.add_weighted_edges_from([(s, t, link['throughput'])])
+        else:
+            self.G = dag
+            self.vertex_num = len(dag.nodes())
         # read performance table
         l = [list(map(int, line.split(','))) for line in open(performance_file_name, 'r')]
         self.p_table = np.matrix(l)

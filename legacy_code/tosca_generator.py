@@ -8,7 +8,7 @@ class ToscaGenerator:
         self.template = None
 
     def add_compute_node(self, name, instance):
-        "Compute nodes will be generated here"
+        """Add compute nodes to tosca template"""
         properties = instance.properties
         if self.template is not None:
             mydict = {'type' : "tosca.nodes.Compute", 'capabilities' : {'host' : {'properties' : properties}}}
