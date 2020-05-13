@@ -25,7 +25,11 @@ class CwlParser:
 
                     elif isinstance(v, dict):
                         for k2, v2 in v.items():
-                            self.add_dependencies(v2, task)
+                            if isinstance(v2, list):
+                                for j in v2:
+                                    self.add_dependencies(j, task)
+                            else:
+                                self.add_dependencies(v2, task)
 
                     else:
                         self.add_dependencies(v, task)
@@ -47,7 +51,7 @@ class CwlParser:
                     for i in graph:
                         if i['id'] == 'main':
                             steps = i['steps']
-                            self.check_and_add_dependencies(steps, self.g)
+                            self.check_and_add_dependencies(steps)
 
                 else:
                     if 'steps' in data:
