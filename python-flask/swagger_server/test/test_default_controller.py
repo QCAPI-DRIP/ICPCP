@@ -17,7 +17,10 @@ class TestDefaultController(BaseTestCase):
 
         get workflow plan as tosca
         """
-        query_string = [('git_url', 'git_url_example')]
+        query_string = [('git_url', 'git_url_example'),
+                        ('performance_file_url', 'performance_file_url_example'),
+                        ('deadline_file_url', 'deadline_file_url_example'),
+                        ('price_file_url', 'price_file_url_example')]
         response = self.client.open(
             '/tosca/',
             method='GET',
