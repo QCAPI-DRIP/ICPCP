@@ -1,11 +1,9 @@
 import yaml
 from werkzeug.datastructures import FileStorage
-from toscaparser import shell as parser_shell
 from toscaparser.tosca_template import ToscaTemplate
 from legacy_code.ICPCP_TOSCA import Workflow
-import networkx as nx
-from icpc_planner.cwlparser import CwlParser
-
+from legacy_code.cwlparser import CwlParser
+from legacy_code.tosca_generator import ToscaGenerator
 import os
 
 
@@ -13,20 +11,16 @@ def save(file: FileStorage):
     dictionary = yaml.safe_load(file.stream)
 
 
-def writeToYaml(services):
-    with open('data.yml', 'w') as outfile:
-        yaml.dump(services, outfile, default_flow_style=False)
+def write_to_yaml(data):
+    with open('data.yml', 'w') as yaml_output:
+        yaml.dump(data, yaml_output, default_flow_style=False)
 
 
-def run_icpc():
+def run_icpc(workflow_file, performance_file, price_file, deadline_file, dag=None):
     wf = Workflow()
     print(os.getcwd())
-    workflow_file = '../../legacy_code/input/pcp/pcp.dag'
-    performance_file = '../../legacy_code/input/pcp/performance'
-    price_file = '../../legacy_code/input/pcp/price'
-    deadline_file = '../../legacy_code/input/pcp/deadline'
     infrastructure_file = '../../legacy_code/input/pcp/inf'
-    wf.init(workflow_file, performance_file, price_file, deadline_file)
+    wf.init(workflow_file, performance_file, price_file, deadline_file, dag)
     wf.calc_startConfiguration(-1)
 
     start_cost, start_eft = wf.getStartCost()
@@ -73,11 +67,33 @@ def verify_tosca():
 
 if __name__ == '__main__':
     # Run cwl parser
-    dag = CwlParser('lobSTR-workflow.cwl')
-    print(dag.g.nodes())
-    print(dag.g.edges())
+    cwl_parser = CwlParser('compile1.cwl')
+    dag = cwl_parser.g
+    # print(dag.nodes())
+    # print(dag.edges())
 
-    # Extract needed instances from icpc
-    servers = run_icpc()
-    for i in servers:
-        print(i.vm_type)
+    #Load tosca generator
+    tosca_gen = ToscaGenerator()
+    tosca_gen.load_default_template()
+
+
+    # Define input
+    workflow_file = '../../legacy_code/input/pcp/pcp.dag'
+    performance_file = '../../legacy_code/input/pcp/performance_compile1'
+    price_file = '../../legacy_code/input/pcp/price'
+    deadline_file = '../../legacy_code/input/pcp/deadline'
+
+    # Run IC-PCP algorithm
+    servers = run_icpc(workflow_file, performance_file, price_file, deadline_file, dag)
+
+    # Add needed instances to tosca description
+    for i in range(0, len(servers)):
+        instance = servers[i]
+        x = {'num_cpus': i + 1, 'disk_size': "{} GB".format((i + 1) * 10), 'mem_size': "{} MB".format(int((i + 1) * 4096))}
+        instance.properties = x
+        tosca_gen.add_compute_node("server {}".format(i + 1), instance)
+        #print(servers[i].properties)
+
+    tosca_gen.write_template_to_file("generated_tosca_description")
+
+
