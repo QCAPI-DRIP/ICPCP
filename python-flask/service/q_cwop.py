@@ -58,10 +58,10 @@ def run_icpc(workflow_file, performance_file, price_file, deadline_file, dag=Non
     return wf.instances
 
 
-def verify_tosca():
+def verify_tosca(filepath):
     """Verify correctness of tosca template"""
     # parser_shell.main("tosca_parser --template-file=python-flask/service/test1.yaml")
-    template = ToscaTemplate(path="test.yaml")
+    template = ToscaTemplate(path=filepath)
     template.verify_template()
 
 
@@ -95,5 +95,8 @@ if __name__ == '__main__':
         #print(servers[i].properties)
 
     tosca_gen.write_template_to_file("generated_tosca_description")
+
+    # #Verify correctness of generated tosca file
+    # verify_tosca("generated_tosca_description.yaml")
 
 
