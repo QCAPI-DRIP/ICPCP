@@ -23,14 +23,19 @@ def get_azure_data(cli_input):
     return True
 
 
-def extract_servers():
+def extract_servers(data):
     """Extract relevant server info from azure data"""
+
     pass
 
 if __name__ == '__main__':
+    # Get available vms based on location: https://docs.microsoft.com/en-gb/rest/api/compute/virtualmachinesizes/list#code-try-0
+    # Get available vms based on subscription: https://docs.microsoft.com/en-us/rest/api/compute/resourceskus/list
     subscription_id = os.environ['AZURE_SUBSCRIPTION_ID']
     key = os.environ['AZURE_SECRET_KEY']
     data = request_data(
-        'https://management.azure.com/subscriptions/{}/providers/Microsoft.Compute/skus?api-version=2019-04-01'.format(
+        'https://management.azure.com/subscriptions/{}/providers/Microsoft.Compute/locations/westeurope/vmSizes?api-version=2019-12-01'.format(
             subscription_id), key)
-    #print(data)
+    print(data)
+
+
