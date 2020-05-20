@@ -7,38 +7,67 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  version: 0.0.1-oas3
+  version: 0.0.1
 servers:
-- url: /
+- url: /q-cwop/0.0.1
 paths:
-  /workflow:
-    post:
-      summary: upload a CWL workflow file
-      description: upload CWL workflow file
-      operationId: upload_cwl
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/body'
+  /tosca/:
+    get:
+      summary: get workflow plan as tosca
+      description: Returns a single pet
+      operationId: get_tosca_plan
+      parameters:
+      - name: git_url
+        in: query
+        description: cwl git url
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+        examples:
+          dna.cw:
+            value: https://github.com/common-workflow-language/workflows/tree/master/workflows/make-to-cwl/dna.cwl
+      - name: performance_file_url
+        in: query
+        description: the location of the  performance file
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: deadline_file_url
+        in: query
+        description: the location of the  deadline file
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: price_file_url
+        in: query
+        description: the location of the  price file
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
       responses:
         "200":
           description: successful operation
           content:
-            '*/*':
+            application/json:
               schema:
-                type: string
-                x-content-type: '*/*'
+                $ref: '#/components/schemas/ToscaTemplate'
+        "400":
+          description: Invalid url supplied
+          content: {}
+        "404":
+          description: reposetory not found
+          content: {}
       x-openapi-router-controller: swagger_server.controllers.default_controller
 components:
   schemas:
-    body:
-      required:
-      - file
+    ToscaTemplate:
       type: object
-      properties:
-        file:
-          type: string
-          description: CWL workflow file
-          format: binary
 

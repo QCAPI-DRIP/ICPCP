@@ -5,23 +5,26 @@ from __future__ import absolute_import
 from flask import json
 from six import BytesIO
 
+from swagger_server.models.tosca_template import ToscaTemplate  # noqa: E501
 from swagger_server.test import BaseTestCase
 
 
 class TestDefaultController(BaseTestCase):
     """DefaultController integration test stubs"""
 
-    def test_upload_cwl(self):
-        """Test case for upload_cwl
+    def test_get_tosca_plan(self):
+        """Test case for get_tosca_plan
 
-        upload a CWL workflow file
+        get workflow plan as tosca
         """
-        data = dict(file='file_example')
+        query_string = [('git_url', 'git_url_example'),
+                        ('performance_file_url', 'performance_file_url_example'),
+                        ('deadline_file_url', 'deadline_file_url_example'),
+                        ('price_file_url', 'price_file_url_example')]
         response = self.client.open(
-            '/workflow',
-            method='POST',
-            data=data,
-            content_type='multipart/form-data')
+            '/tosca/',
+            method='GET',
+            query_string=query_string)
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
 
