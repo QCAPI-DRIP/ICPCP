@@ -9,7 +9,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   version: 0.0.1
 servers:
-- url: /
+- url: /q-cwop/0.0.1
 paths:
   /tosca/:
     get:
@@ -21,6 +21,33 @@ paths:
         in: query
         description: cwl git url
         required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+        examples:
+          dna.cw:
+            value: https://github.com/common-workflow-language/workflows/tree/master/workflows/make-to-cwl/dna.cwl
+      - name: performance_file_url
+        in: query
+        description: the location of the  performance file
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: deadline_file_url
+        in: query
+        description: the location of the  deadline file
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: price_file_url
+        in: query
+        description: the location of the  price file
+        required: false
         style: form
         explode: true
         schema:
