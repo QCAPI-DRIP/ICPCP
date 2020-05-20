@@ -21,5 +21,5 @@ https://github.com/judiths1618/DQN-based-MARL-v2.0
 * Python library: https://pypi.org/project/tosca-parser/
 * tosca-sure: 
   + REST API: https://app.swaggerhub.com/apis/skoulouzis/tosca-sure/1.0.0
-  + docker: https://hub.docker.com/repository/docker/alogo53/sure-tosca
+  + docker: docker pull qcdis/sure-tosca
 
