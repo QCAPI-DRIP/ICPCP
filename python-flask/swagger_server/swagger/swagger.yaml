@@ -27,7 +27,7 @@ paths:
           type: string
         examples:
           dna.cw:
-            value: https://github.com/common-workflow-language/workflows/tree/master/workflows/make-to-cwl/dna.cwl
+            value: https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/make-to-cwl/dna.cwl
       - name: performance_file_url
         in: query
         description: the location of the  performance file
