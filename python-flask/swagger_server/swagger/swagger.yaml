@@ -52,6 +52,14 @@ paths:
         explode: true
         schema:
           type: string
+      - name: cloud_preferences
+        in: query
+        description: the cloud preferences
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/cloud_preferences'
       responses:
         "200":
           description: successful operation
@@ -70,4 +78,11 @@ components:
   schemas:
     ToscaTemplate:
       type: object
+    cloud_preferences:
+      type: object
+      properties:
+        provider_name:
+          type: string
+        datacenter:
+          type: string
 
