@@ -75,9 +75,19 @@ def get_file_from_url(url, file_name):
 
 @app.route('/tosca', methods=['GET'])
 def tosca():
-    git_url = request.args.get('git_url')
-    file_name = git_url.split('/')[-1]
+    #extract urls from request
+    git_url = request.args.get('git_url', None)
+    performance_url = request.args.get('performance_url', None)
+    deadline_file_url = request.args.get('deadline_file_url', None)
+    price_file_url = request.args.get('price_file_url', None)
+
+    #set file names
+    file_name = git_url.split("/")[-1]
+    performance_file_name = "performance_" + uuid.uuid4().hex
+
+    # download files from url
     get_file_from_url(git_url, file_name)
+    get_file_from_url(performance_url, performance_file_name)
 
     # Run cwl parser
     cwl_parser = CwlParser(file_name)
@@ -91,7 +101,7 @@ def tosca():
 
     # Define input
     workflow_file = '../../legacy_code/input/pcp/pcp.dag'
-    performance_file = '../../legacy_code/input/pcp/performance_compile1'
+    performance_file = os.getcwd() + performance_file_name
     price_file = '../../legacy_code/input/pcp/price'
     deadline_file = '../../legacy_code/input/pcp/deadline'
 
