@@ -17,10 +17,10 @@ DEBUG = True
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-app.config["TOSCA_FILES"] = os.getcwd()
+app.config["TOSCA_FILES"] = os.path.join(os.getcwd(), "planning_output")
 
 CORS(app, resources={r'/*': {'origins': '*'}})
-
+CURRENT_DIR = os.path.dirname(__file__)
 
 
 def run_icpc(workflow_file, performance_file, price_file, deadline_file, dag=None):
@@ -64,6 +64,7 @@ def run_icpc(workflow_file, performance_file, price_file, deadline_file, dag=Non
 
     return wf.instances
 
+
 def get_file_from_url(url, file_name):
     # open in binary mode
     with open(file_name, "wb") as out_file:
@@ -71,26 +72,31 @@ def get_file_from_url(url, file_name):
         out_file.write(response.content)
 
 
-
-
+# http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF
 @app.route('/tosca', methods=['GET'])
 def tosca():
-    #extract urls from request
+    # extract urls from request
     git_url = request.args.get('git_url', None)
     performance_url = request.args.get('performance_url', None)
-    deadline_file_url = request.args.get('deadline_file_url', None)
-    price_file_url = request.args.get('price_file_url', None)
+    deadline_url = request.args.get('deadline_url', None)
+    price_url = request.args.get('price_url', None)
 
-    #set file names
-    file_name = git_url.split("/")[-1]
-    performance_file_name = "performance_" + uuid.uuid4().hex
+    # set file names
+    input_folder = os.path.join(CURRENT_DIR, 'planning_input')
+    output_folder = os.path.join(CURRENT_DIR, 'planning_output')
+    workflow_file_name = os.path.join(input_folder, git_url.split("/")[-1] + "_" + uuid.uuid4().hex)
+    performance_file_name = os.path.join(input_folder, "performance_" + uuid.uuid4().hex)
+    deadline_file_name = os.path.join(input_folder, "deadline_" + uuid.uuid4().hex)
+    price_file_name = os.path.join(input_folder, "price_" + uuid.uuid4().hex)
 
     # download files from url
-    get_file_from_url(git_url, file_name)
+    get_file_from_url(git_url, workflow_file_name)
     get_file_from_url(performance_url, performance_file_name)
+    get_file_from_url(deadline_url, deadline_file_name)
+    get_file_from_url(price_url, price_file_name)
 
     # Run cwl parser
-    cwl_parser = CwlParser(file_name)
+    cwl_parser = CwlParser(workflow_file_name)
     dag = cwl_parser.g
     # print(dag.nodes())
     # print(dag.edges())
@@ -101,9 +107,10 @@ def tosca():
 
     # Define input
     workflow_file = '../../legacy_code/input/pcp/pcp.dag'
-    performance_file = os.getcwd() + performance_file_name
-    price_file = '../../legacy_code/input/pcp/price'
-    deadline_file = '../../legacy_code/input/pcp/deadline'
+    performance_file = '../../legacy_code/input/pcp/performance_compile1'
+    #performance_file = performance_file_name
+    price_file = price_file_name
+    deadline_file = deadline_file_name
 
     # Run IC-PCP algorithm
     servers = run_icpc(workflow_file, performance_file, price_file, deadline_file, dag)
@@ -117,19 +124,29 @@ def tosca():
         tosca_gen.add_compute_node("server {}".format(i + 1), instance)
         print(servers[i].properties)
 
-    tosca_gen.write_template_to_file("generated_tosca_description")
-    # performance_file_url = request.args.get('performance_file_url')
-    # deadline_file_url = request.args.get('deadline_file_url')
-    # price_file_url = request.args.get('price_file_url')
-    # return jsonify("tosca")
+    tosca_file_name = "generated_tosca_description_" + uuid.uuid4().hex
+    tosca_gen.write_template_to_file(os.path.join(output_folder, tosca_file_name))
+
+    # after generating tosca, remove input files
+    if os.path.exists(workflow_file_name):
+        os.remove(workflow_file_name)
+    if os.path.exists(performance_file_name):
+        os.remove(performance_file_name)
+    if os.path.exists(deadline_file_name):
+        os.remove(deadline_file_name)
+    if os.path.exists(price_file_name):
+        os.remove(price_file_name)
+
     try:
-        return send_from_directory(app.config["TOSCA_FILES"], filename="generated_tosca_description.yaml", as_attachment=True)
+        return send_from_directory(app.config["TOSCA_FILES"], filename=tosca_file_name,
+                                   as_attachment=True)
     except FileNotFoundError:
         abort(404)
     # try:
     #     return Response(
     # except Exception as e:
     #     raise APIError(message=str(e), status_code=400)
+
 
 # @app.route('/file-downloads/')
 # def file_downloads():
