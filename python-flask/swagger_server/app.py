@@ -75,6 +75,8 @@ def get_file_from_url(url, file_name):
 # http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF
 @app.route('/tosca', methods=['GET'])
 def tosca():
+
+    #TODO: Handle wrong requests
     # extract urls from request
     git_url = request.args.get('git_url', None)
     performance_url = request.args.get('performance_url', None)
@@ -137,23 +139,15 @@ def tosca():
     if os.path.exists(price_file_name):
         os.remove(price_file_name)
 
+
+    #send generated tosca description to client
     try:
-        return send_from_directory(app.config["TOSCA_FILES"], filename=tosca_file_name,
+        return send_from_directory(app.config["TOSCA_FILES"], filename=tosca_file_name + ".yaml",
                                    as_attachment=True)
     except FileNotFoundError:
         abort(404)
-    # try:
-    #     return Response(
-    # except Exception as e:
-    #     raise APIError(message=str(e), status_code=400)
 
 
-# @app.route('/file-downloads/')
-# def file_downloads():
-#     try:
-#         return render_template('downloads.html')
-#     except Exception as e:
-#         return str(e)
 
 
 if __name__ == '__main__':
