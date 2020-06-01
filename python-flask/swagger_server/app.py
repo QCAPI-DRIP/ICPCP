@@ -151,7 +151,7 @@ def tosca():
 
 
 if __name__ == '__main__':
-    # git_url = 'https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/make-to-cwl/dna.cwl'
+    # git_url = 'http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF&deadline_url=https://pastebin.com/raw/1Y7XEFe8&price_url=https://pastebin.com/raw/ZaNbfLzP'
     # file_name = git_url.split('/')[-1]
     # get_file_from_url(git_url, file_name)
     app.run()
