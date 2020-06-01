@@ -36,7 +36,7 @@
         data() {
             return {
                 form: {
-                    performanceURLURL: '',
+                    performanceURL: '',
                     priceURL: '',
                     deadlineURL: ''
                 }
