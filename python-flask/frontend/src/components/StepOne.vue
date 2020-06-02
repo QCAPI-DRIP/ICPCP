@@ -4,10 +4,10 @@
         <div class="field">
             <label class="label">Enter workflow url</label>
             <div class="control">
-                <input :class="['input', ($v.form.workflow.$error) ? 'is-danger' : '']" type="text" placeholder="Specify link to cwl file"
-                       v-model="form.workflow">
+                <input :class="['input', ($v.form.workflow_url.$error) ? 'is-danger' : '']" type="text" placeholder="Specify link to cwl file"
+                       v-model="form.workflow_url">
             </div>
-            <p v-if="$v.form.workflow.$error" class="help is-danger">This workflow is invalid</p>
+            <p v-if="$v.form.workflow_url.$error" class="help is-danger">This url is invalid</p>
         </div>
     </div>
 </template>
@@ -22,19 +22,26 @@
         data() {
             return {
                 form: {
-                    workflow: '',
+                    workflow_url: '',
                 }
             }
         },
         validations: {
             form: {
-                workflow: {
+                workflow_url: {
                     required,
                     url
                 }
             }
         },
         watch: {
+            form: {
+                handler(val){
+                    this.$store.commit('set_workflow', val.workflow_url)
+                },
+                deep: true
+            },
+
             $v: {
                 handler: function (val) {
                     if(!val.$invalid) {
@@ -47,7 +54,11 @@
             },
             clickedNext(val) {
                 if(val === true) {
+                    this.$store.commit('increment')
+                    alert(this.$store.state.count)
+                    //this.$store.commit('set_workflow', this.workflow_url)
                     this.$v.form.$touch();
+                    
                 }
             }
         },

@@ -4,7 +4,7 @@
             <div class="columns">
                 <div class="column is-8 is-offset-2">
                     <horizontal-stepper :steps="demoSteps" @completed-step="completeStep"
-                                        @active-step="isStepActive" @stepper-finished="getTosca"
+                                        @active-step="isStepActive" @stepper-finished="alert"
                     >                     
                     </horizontal-stepper>
                 </div>
@@ -16,7 +16,7 @@
             <div class="d-block text-center">
                 <p>Your solution has been downloaded</p>
             </div>
-            <b-button class="mt-3" block @click="restart">Close</b-button>
+            <b-button class="mt-3" block @click="alert">Close</b-button>
         </b-modal>
         </div>
     </section>
@@ -86,7 +86,7 @@ export default {
         },
         // Executed when @stepper-finished event is triggered
         getTosca() {
-            const path = `http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF&deadline_url=https://pastebin.com/raw/1Y7XEFe8&price_url=https://pastebin.com/raw/ZaNbfLzP`;
+            const path = `http://127.0.0.1:5000/tosca?git_url=${this.$store.state.workflow_url}&performance_url=${this.$store.state.performance_url}&deadline_url=${this.$store.state.deadline_url}&price_url=${this.$store.state.price_url}`;
             axios.get(path)
                 .then((res) => {
                     const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -111,7 +111,8 @@ export default {
         },
 
         alert(payload) {
-            alert('end')
+            const path = `http://127.0.0.1:5000/tosca?git_url=${this.$store.state.workflow_url}&performance_url=${this.$store.state.performance_url}&deadline_url=${this.$store.state.deadline_url}&price_url=${this.$store.state.price_url}`;
+            alert(path)
         }
     }
 }

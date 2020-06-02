@@ -2,24 +2,24 @@
  
  <div style="padding: 2rem 3rem; text-align: left;">
         <div class="field">
-            <label class="label">performanceURL metrics url</label>
+            <label class="label">performance_url metrics url</label>
             <div class="control">
-                <input :class="['input', ($v.form.performanceURL.$error) ? 'is-danger' : '']" type="text" placeholder="Text input"
-                       v-model="form.performanceURL">
+                <input :class="['input', ($v.form.performance_url.$error) ? 'is-danger' : '']" type="text" placeholder="Text input"
+                       v-model="form.performance_url">
             </div>
-            <p v-if="$v.form.performanceURL.$error" class="help is-danger">This performanceURL is invalid</p>
+            <p v-if="$v.form.performance_url.$error" class="help is-danger">This performance_url is invalid</p>
         </div>
         <div class="field">
             <label class="label">Price file url</label>
             <div class="control">
-                <input :class="['input', ($v.form.priceURL.$error) ? 'is-danger' : '']"  type="text" placeholder="Email input" v-model="form.priceURL">
+                <input :class="['input', ($v.form.price_url.$error) ? 'is-danger' : '']"  type="text" placeholder="Email input" v-model="form.price_url">
             </div>
-            <p v-if="$v.form.priceURL.$error" class="help is-danger">This email is invalid</p>
+            <p v-if="$v.form.price_url.$error" class="help is-danger">This email is invalid</p>
         </div>
         <div class="field">
             <label class="label">Deadline file url</label>
             <div class="control">
-                <input :class="['textarea', ($v.form.deadlineURL.$error) ? 'is-danger' : '']"  placeholder="Deadline input" v-model="form.deadlineURL">
+                <input :class="['textarea', ($v.form.deadline_url.$error) ? 'is-danger' : '']"  placeholder="Deadline input" v-model="form.deadline_url">
             </div>
         </div>
     </div>
@@ -36,29 +36,51 @@
         data() {
             return {
                 form: {
-                    performanceURL: '',
-                    priceURL: '',
-                    deadlineURL: ''
+                    performance_url: '',
+                    price_url: '',
+                    deadline_url: ''
                 }
             }
         },
         validations: {
             form: {
-                performanceURL: {
+                performance_url: {
                     required,
                     url
                 },
-                priceURL: {
+                price_url: {
                     required,
                     url
                 },
-                deadlineURL: {
+                deadline_url: {
                     required,
                     url
                 }
             }
         },
+        computed: {
+            performance() {
+                return this.form.performance_url;
+            },
+            price() {
+                return this.form.price_url;
+            },
+            deadline() {
+                return this.form.deadline_url;
+            }
+        },
         watch: {
+            performance: {
+                handler(val){
+                    this.$store.commit('set_performance', val.performance_url)
+                }
+            },
+            price() {
+                    this.$store.commit('set_price', this.price_url)
+            },
+            deadline() {
+                    this.$store.commit('set_deadline', this.deadline_url)
+            },
             $v: {
                 handler: function (val) {
                     if(!val.$invalid) {
