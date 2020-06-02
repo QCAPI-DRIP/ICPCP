@@ -1,6 +1,6 @@
 <template>
   <div>
-      <h1> The generated IaaS solution, given the parameters you have selected can be downloaded below. </h1>
+      <p> The generated IaaS solution, given the parameters you have selected can be downloaded below. </p>
 
   </div>
 </template>

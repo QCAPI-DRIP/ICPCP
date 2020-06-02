@@ -4,11 +4,11 @@ import router from './router'
 import BootstrapVue from 'bootstrap-vue';
 import 'bootstrap/dist/css/bootstrap.css';
 import VueGoodWizard from 'vue-good-wizard';
-import VueStepper from 'vue-stepper';
 
 Vue.config.productionTip = false
 // Vue.use(BootstrapVue);
-Vue.use(VueGoodWizard, BootstrapVue, VueStepper);
+Vue.use(BootstrapVue);
+Vue.use(VueGoodWizard);
 
 new Vue({
   router,

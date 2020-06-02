@@ -1,8 +1,12 @@
 <template>
-  <div class="container">
+  <!-- <div class="container">
       <div>
         <button type="button" class="btn btn-success btn-sm" v-on:click="getTosca()">Download Tosca description</button>
        </div>
+  </div> -->
+
+  <div>
+<b-button variant="outline-primary">Button</b-button>
   </div>
   
 

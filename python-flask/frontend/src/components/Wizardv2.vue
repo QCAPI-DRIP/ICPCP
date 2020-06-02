@@ -9,6 +9,15 @@
                     </horizontal-stepper>
                 </div>
             </div>
+        <b-modal id="bv-modal-finish" hide-footer>
+            <template v-slot:modal-title>
+                Iaas Planner
+            </template>
+            <div class="d-block text-center">
+                <p>Your solution has been downloaded</p>
+            </div>
+            <b-button class="mt-3" block @click="restart">Close</b-button>
+        </b-modal>
         </div>
     </section>
 </template>
@@ -86,12 +95,20 @@ export default {
                     link.setAttribute('download', 'IaaS solution.yaml');
                     document.body.appendChild(link);
                     link.click();
+                    this.$bvModal.show('bv-modal-finish');
                 })
                 .catch((error) => {
                 // eslint-disable-next-line
                 console.error(error); 
                 });
             },
+
+        restart(){
+            this.$forceUpdate()
+            window.location.reload()
+
+
+        },
 
         alert(payload) {
             alert('end')
