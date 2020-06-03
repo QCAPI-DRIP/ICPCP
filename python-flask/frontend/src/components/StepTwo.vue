@@ -70,16 +70,14 @@
             }
         },
         watch: {
-            performance: {
-                handler(val){
-                    this.$store.commit('set_performance', val.performance_url)
-                }
-            },
+            performance() {
+                    this.$store.commit('set_performance', this.form.performance_url)
+                },
             price() {
-                    this.$store.commit('set_price', this.price_url)
+                    this.$store.commit('set_price', this.form.price_url)
             },
             deadline() {
-                    this.$store.commit('set_deadline', this.deadline_url)
+                    this.$store.commit('set_deadline', this.form.deadline_url)
             },
             $v: {
                 handler: function (val) {

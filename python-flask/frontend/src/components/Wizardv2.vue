@@ -4,7 +4,7 @@
             <div class="columns">
                 <div class="column is-8 is-offset-2">
                     <horizontal-stepper :steps="demoSteps" @completed-step="completeStep"
-                                        @active-step="isStepActive" @stepper-finished="alert"
+                                        @active-step="isStepActive" @stepper-finished="getTosca"
                     >                     
                     </horizontal-stepper>
                 </div>
@@ -16,7 +16,7 @@
             <div class="d-block text-center">
                 <p>Your solution has been downloaded</p>
             </div>
-            <b-button class="mt-3" block @click="alert">Close</b-button>
+            <b-button class="mt-3" block @click="restart">Close</b-button>
         </b-modal>
         </div>
     </section>
