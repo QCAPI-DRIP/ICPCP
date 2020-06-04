@@ -6,7 +6,7 @@
         <input
           :class="['input', ($v.form.performance_url.$error) ? 'is-danger' : '']"
           type="text"
-          placeholder="Text input"
+          placeholder="Performance input"
           v-model="form.performance_url"
         >
       </div>
@@ -23,7 +23,7 @@
         <input
           :class="['input', ($v.form.price_url.$error) ? 'is-danger' : '']"
           type="text"
-          placeholder="Email input"
+          placeholder="Price input"
           v-model="form.price_url"
         >
       </div>
