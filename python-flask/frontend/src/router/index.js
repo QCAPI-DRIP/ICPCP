@@ -2,7 +2,6 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Ping from '../views/Ping.vue'
-import Books from '../views/Books.vue'
 import Tosca from '../views/Tosca.vue'
 import Wizard from '../components/Wizard.vue'
 import Wizardv2 from '../components/Wizardv2.vue'
@@ -35,12 +34,6 @@ Vue.use(VueRouter)
     path: '/ping',
     name: 'Ping',
     component: Ping
-  },
-
-  {
-    path: '/books',
-    name: 'Books',
-    component: Books,
   },
 
   {
