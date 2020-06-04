@@ -6,11 +6,10 @@
   </div> -->
 
   <div>
-<b-button variant="outline-primary">Button</b-button>
+    <b-button variant="outline-primary">
+      Button
+    </b-button>
   </div>
-  
-
-
 </template>
 <script>
 import axios from 'axios';

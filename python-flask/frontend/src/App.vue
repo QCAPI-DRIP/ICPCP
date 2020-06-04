@@ -31,4 +31,18 @@
 #nav a.router-link-exact-active {
   color: #42b983;
 }
+
+label.label {
+          color: #333333;
+          font-weight: bold;
+          font-size: large;
+}
+/* p.form-data
+
+          .step-subtitle {
+            font-weight: lighter;
+            margin: 0;
+            color: #555555;
+          }
+        } */
 </style>

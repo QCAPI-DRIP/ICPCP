@@ -1,25 +1,46 @@
 <template>
-    <section class="section">
-        <div class="container">
-            <div class="columns">
-                <div class="column is-8 is-offset-2">
-                    <horizontal-stepper :steps="demoSteps" @completed-step="completeStep"
-                                        @active-step="isStepActive" @stepper-finished="getTosca"
-                    >                     
-                    </horizontal-stepper>
-                </div>
-            </div>
-        <b-modal id="bv-modal-finish" hide-footer>
-            <template v-slot:modal-title>
-                Iaas Planner
-            </template>
-            <div class="d-block text-center">
-                <p>Your solution has been downloaded</p>
-            </div>
-            <b-button class="mt-3" block @click="restart">Close</b-button>
-        </b-modal>
+<!-- <v-app> -->
+    <!-- <v-app-bar
+      app
+      color="primary"
+      dark
+    >
+    </v-app-bar> -->
+    <!-- <v-content> -->
+  <section class="section">
+    <div class="container">
+      <div class="columns">
+        <div class="column is-8 is-offset-2">
+          <horizontal-stepper
+            :steps="demoSteps"
+            @completed-step="completeStep"
+            @active-step="isStepActive"
+            @stepper-finished="getTosca"
+          />
         </div>
-    </section>
+      </div>
+      <b-modal
+        id="bv-modal-finish"
+        hide-footer
+      >
+        <template v-slot:modal-title>
+          Iaas Planner
+        </template>
+        <div class="d-block text-center">
+          <p>Your solution has been downloaded</p>
+        </div>
+        <b-button
+          class="mt-3"
+          block
+          @click="restart"
+        >
+          Close
+        </b-button>
+      </b-modal>
+    </div>
+  </section>
+  <!-- </v-content> -->
+  <!-- </v-app> -->
 </template>
 
 <script>
@@ -36,28 +57,28 @@ export default {
         return {
             demoSteps: [
                 {
-                    icon: 'mail',
+                    icon: 'inbox',
                     name: 'first',
-                    title: 'Workflow file',
+                    title: 'Workflow',
                     subtitle: 'Specify workflow',
                     component: StepOne,
                     completed: false
 
                 },
                 {
-                    icon: 'report_problem',
+                    icon: 'input',
                     name: 'second',
-                    title: 'Sample title 2',
-                    subtitle: 'Subtitle sample',
+                    title: 'Planning input',
+                    subtitle: 'Specify input files',
                     component: StepTwo,
                     completed: false
                 },
 
                 {
-                    icon: 'report_problem',
-                    name: 'second',
-                    title: 'Sample title 2',
-                    subtitle: 'Subtitle sample',
+                    icon: 'cloud_download',
+                    name: 'third',
+                    title: 'Planning completed',
+                    subtitle: 'IaaS generated',
                     component: StepThree,
                     completed: true
                 }

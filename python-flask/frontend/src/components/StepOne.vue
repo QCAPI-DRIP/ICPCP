@@ -1,15 +1,23 @@
- <template>
-
- <div style="padding: 2rem 3rem; text-align: left;">
-        <div class="field">
-            <label class="label">Enter workflow url</label>
-            <div class="control">
-                <input :class="['input', ($v.form.workflow_url.$error) ? 'is-danger' : '']" type="text" placeholder="Specify link to cwl file"
-                       v-model="form.workflow_url">
-            </div>
-            <p v-if="$v.form.workflow_url.$error" class="help is-danger">This url is invalid</p>
-        </div>
+<template>
+  <div style="padding: 2rem 3rem; text-align: left;">
+    <div class="field">
+      <label class="label">Enter the url to the workflow file below</label>
+      <div class="control">
+        <input
+          :class="['input', ($v.form.workflow_url.$error) ? 'is-danger' : '']"
+          type="text"
+          placeholder="Specify link to cwl file"
+          v-model="form.workflow_url"
+        >
+      </div>
+      <p
+        v-if="$v.form.workflow_url.$error"
+        class="help is-danger"
+      >
+        This url is invalid
+      </p>
     </div>
+  </div>
 </template>
 
 <script>
@@ -54,9 +62,6 @@
             },
             clickedNext(val) {
                 if(val === true) {
-                    this.$store.commit('increment')
-                    alert(this.$store.state.count)
-                    //this.$store.commit('set_workflow', this.workflow_url)
                     this.$v.form.$touch();
                     
                 }

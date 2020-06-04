@@ -1,7 +1,8 @@
 <template>
-  <div>
-      <p> The generated IaaS solution, given the parameters you have selected can be downloaded below. </p>
-
+  <div style="padding: 2rem 3rem; text-align: left;">
+    <div class="field">
+      <label class="label">The generated IaaS solution, given the parameters you have selected can be downloaded below.</label>
+    </div>
   </div>
 </template>
 

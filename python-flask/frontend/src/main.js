@@ -5,6 +5,7 @@ import BootstrapVue from 'bootstrap-vue';
 import 'bootstrap/dist/css/bootstrap.css';
 import VueGoodWizard from 'vue-good-wizard';
 import Vuex from "vuex";
+//import vuetify from './plugins/vuetify';
 
 Vue.config.productionTip = false
 // Vue.use(BootstrapVue);
@@ -14,7 +15,6 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
   state: {
-    count: 0,
     workflow_url: "",
     price_url: "",
     deadline_url: "",
@@ -22,9 +22,6 @@ const store = new Vuex.Store({
 
   },
   mutations: {
-    increment (state) {
-      state.count++
-    },
     set_workflow(state, payload) {
       state.workflow_url = payload
     },
@@ -44,5 +41,6 @@ const store = new Vuex.Store({
 new Vue({
   router,
   store,
+  // vuetify,
   render: h => h(App)
 }).$mount('#app')

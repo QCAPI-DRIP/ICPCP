@@ -2,8 +2,9 @@
   <div>
     <vue-good-wizard 
       :steps="steps"
-      :onNext="nextClicked" 
-      :onBack="backClicked">
+      :on-next="nextClicked" 
+      :on-back="backClicked"
+    >
       <div slot="page1">
         <h4>Step 1</h4>
         <p>This is step 1</p>
@@ -26,7 +27,7 @@
 
 <script>
 export default {
-  name: 'demo',
+  name: 'Demo',
   data(){
     return {
       steps: [
