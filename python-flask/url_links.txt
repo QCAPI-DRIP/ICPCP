@@ -1,0 +1,8 @@
+get request example:
+http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF&deadline_url=https://pastebin.com/raw/1Y7XEFe8&price_url=https://pastebin.com/raw/ZaNbfLzP
+
+
+workflow file: https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl
+performance file: https://pastebin.com/raw/yhz2YsFF
+deadline file: https://pastebin.com/raw/ZaNbfLzP
+price file: https://pastebin.com/raw/1Y7XEFe8
