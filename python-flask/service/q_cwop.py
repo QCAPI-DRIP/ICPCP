@@ -16,11 +16,11 @@ def write_to_yaml(data):
         yaml.dump(data, yaml_output, default_flow_style=False)
 
 
-def run_icpc(workflow_file, performance_file, price_file, deadline_file, dag=None):
+def run_icpc(workflow_file, performance_file, price_file, deadline_file, dag=None, combined_input=None):
     wf = Workflow()
     print(os.getcwd())
     infrastructure_file = '../../legacy_code/input/pcp/inf'
-    wf.init(workflow_file, performance_file, price_file, deadline_file, dag)
+    wf.init(workflow_file, performance_file, price_file, deadline_file, dag, combined_input)
     wf.calc_startConfiguration(-1)
 
     start_cost, start_eft = wf.getStartCost()
@@ -79,12 +79,13 @@ if __name__ == '__main__':
 
     # Define input
     workflow_file = '../../legacy_code/input/pcp/pcp.dag'
+    combined_input = '../../legacy_code/input/pcp/input_pcp.yaml'
     performance_file = '../../legacy_code/input/pcp/performance_compile1'
     price_file = '../../legacy_code/input/pcp/price'
     deadline_file = '../../legacy_code/input/pcp/deadline'
 
     # Run IC-PCP algorithm
-    servers = run_icpc(workflow_file, performance_file, price_file, deadline_file, dag)
+    servers = run_icpc(workflow_file, performance_file, price_file, deadline_file, dag, combined_input)
 
     # Add needed instances to tosca description
     for i in range(0, len(servers)):

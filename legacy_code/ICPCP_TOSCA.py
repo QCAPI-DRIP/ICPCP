@@ -11,6 +11,8 @@ import random
 import networkx as nx
 import numpy as np
 import json
+import yaml
+import io
 from legacy_code.NewInstance import NewInstance
 from subprocess import call
 import time
@@ -40,7 +42,7 @@ class Workflow:
 
 
 
-    def init(self, workflow_file_name, performance_file_name, price_file_name, deadline_file_name, dag=None):
+    def init(self, workflow_file_name, performance_file_name, price_file_name, deadline_file_name, dag=None, combined_input=None):
 
         # Initialization
         self.visited = []
@@ -50,6 +52,11 @@ class Workflow:
         self.deadline = 0
 
         if dag is None:
+            l = [list(map(int, line.split(','))) for line in open(performance_file_name, 'r')]
+            deadline = open(deadline_file_name, 'r').readline()
+            self.deadline = int(deadline)
+            self.vm_price = list(map(int, open(price_file_name, 'r').readline().split(',')))
+
             # Read the workflow information
             with open(workflow_file_name, 'r') as f:
                 data = json.load(f)
@@ -81,8 +88,19 @@ class Workflow:
         else:
             self.G = dag
             self.vertex_num = len(dag.nodes())
-        # read performance table
-        l = [list(map(int, line.split(','))) for line in open(performance_file_name, 'r')]
+
+            with open(combined_input, 'r') as stream:
+                data_loaded = yaml.safe_load(stream)
+                self.vm_price = data_loaded[0]["price"]
+                self.deadline = data_loaded[2]["deadline"]
+                perf_data = data_loaded[1]["performance"]
+                l = []
+                for key, value in perf_data.items():
+                    l.append(value)
+
+
+
+        # print performance table
         self.p_table = np.matrix(l)
         print("number of nodes in G: " + str(self.vertex_num))
         print(self.p_table)
@@ -129,15 +147,15 @@ class Workflow:
 
         self.assigned_list = [-1] * (self.vertex_num)
 
-        self.vm_price = list(map(int, open(price_file_name, 'r').readline().split(',')))
+
 
         self.instances = []
         if len(list(nx.simple_cycles(self.G))) > 0:
             print('the DAG contains cycles!')
         d_list = []
 
-        deadline = open(deadline_file_name, 'r').readline()
-        self.deadline = int(deadline)
+
+
 
 
 
