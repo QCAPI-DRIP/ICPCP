@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, Response, send_file, send_from_directory, abort
 import requests
 from flask_cors import CORS
-from werkzeug import secure_filename
+import werkzeug.utils
 import yaml
 from werkzeug.datastructures import FileStorage
 from toscaparser.tosca_template import ToscaTemplate
@@ -18,7 +18,7 @@ DEBUG = True
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config["TOSCA_FILES"] = os.path.join(os.getcwd(), "planning_output")
-app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), "planning_input")
+app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), "planning_input")
 app.config['MAX_CONTENT_PATH'] = 1000000
 
 CORS(app, resources={r'/*': {'origins': '*'}})
@@ -73,13 +73,21 @@ def get_file_from_url(url, file_name):
         response = requests.get(url)
         out_file.write(response.content)
 
+
+
 @app.route('/upload', methods=['POST'])
 def upload_files():
     if request.method == 'POST':
-        files = request.files['file']
-        for file in files:
-            file.save(secure_filename(file.filename))
+        # files = request.files.getlist("file[]")
+        # print(files)
+        # for file in files:
+        #     file.save(werkzeug.utils.secure_filename(file.filename))
+        workflow_file = request.files['workflow_file']
+        input_file = request.files['input_file']
+        workflow_file.save(os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(workflow_file.filename)))
+        input_file.save(os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename)))
         return "files uploaded successfully"
+
 
 # http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF
 @app.route('/tosca', methods=['GET'])

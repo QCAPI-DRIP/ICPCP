@@ -20,7 +20,7 @@ watch: {
         },
         clickedNext(val) {
             if(val === true) {
-                this.$v.form.$touch();
+                // this.$v.form.$touch();
             }
         }
     },
