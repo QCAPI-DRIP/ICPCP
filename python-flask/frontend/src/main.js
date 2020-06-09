@@ -5,9 +5,6 @@ import BootstrapVue from 'bootstrap-vue';
 import 'bootstrap/dist/css/bootstrap.css';
 import VueGoodWizard from 'vue-good-wizard';
 import Vuex from "vuex";
-import UploadFileButton from '@/components/UploadFileButton'
-
-Vue.component('upload-file-button', UploadFileButton)
 // import vuetify from './plugins/vuetify';
 
 Vue.config.productionTip = false
