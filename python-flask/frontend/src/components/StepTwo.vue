@@ -1,6 +1,25 @@
 <template>
   <div style="padding: 2rem 3rem; text-align: left;">
-    <div class="field">
+        <form>
+    <div class="form-group">
+        <label for="inputUrl">Enter url to input file</label>
+        <input :class="['input', ($v.form.input_url.$error) ? 'is-danger' : '']"
+        type="url" class="form-control" id="InputUrl" placeholder="linktoinputfile.yaml" v-model="form.input_url">
+    </div>
+    <div class="form-group">
+    <label for="inputFile">Or specify input file</label>
+    <b-form-file
+      v-model="input_file"
+      :state="null"
+      placeholder="Choose a input file"
+      drop-placeholder="Drop file here..."
+    ></b-form-file>
+    </div>
+    </form>
+    
+    
+    
+    <!-- <div class="field">
       <label class="label">Enter the url to the performance file below</label>
       <div class="control">
         <input
@@ -49,13 +68,13 @@
       >
         This url is invalid
       </p>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script>
  import {validationMixin} from 'vuelidate'
-    import {required, url} from 'vuelidate/lib/validators'
+ import {required, url} from 'vuelidate/lib/validators'
 
     export default {
         props: ['clickedNext', 'currentStep'],
@@ -65,8 +84,10 @@
                 form: {
                     performance_url: '',
                     price_url: '',
-                    deadline_url: ''
-                }
+                    deadline_url: '',
+                    input_url: '',
+                },
+                input_file: null
             }
         },
         validations: {
@@ -80,6 +101,10 @@
                     url
                 },
                 deadline_url: {
+                    required,
+                    url
+                },
+                input_url: {
                     required,
                     url
                 }
@@ -106,6 +131,15 @@
             deadline() {
                     this.$store.commit('set_deadline', this.form.deadline_url)
             },
+            input_file: {
+                handler(val){
+                    if (val != null) {
+                        this.$store.commit('set_input_file', val)
+                        this.$emit('can-continue', {value: true});
+                    } else {
+                        this.$emit('can-continue', {value: false});
+                    }
+                },
             $v: {
                 handler: function (val) {
                     if(!val.$invalid) {
@@ -130,5 +164,6 @@
             }
         }
     }
+  }
 
 </script>

@@ -20,6 +20,7 @@
     "vue-stepper": "^1.4.2",
     "vuelidate": "^0.7.5",
     "vuetify": "^2.2.31",
+    "vuetify-upload-button": "^2.0.2",
     "vuex": "^3.4.0"
   },
   "devDependencies": {

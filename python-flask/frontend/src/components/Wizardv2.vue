@@ -15,7 +15,7 @@
             :steps="demoSteps"
             @completed-step="completeStep"
             @active-step="isStepActive"
-            @stepper-finished="getTosca"
+            @stepper-finished="getToscaViaFiles"
           />
         </div>
       </div>
@@ -123,6 +123,30 @@ export default {
                 console.error(error); 
                 });
             },
+
+         getToscaViaFiles() {
+          
+          let workflow_file = this.$store.state.workflow_file;
+          let input_file = this.$store.state.input_file;
+          let formData = new FormData();
+          formData.append('workflow_file', workflow_file);
+          formData.append('input_file', input_file)
+
+             axios.post('http://127.0.0.1:5000/upload',
+              formData,
+              {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+              }
+            ).then(function(){
+              console.log('SUCCESS!!');
+            })
+            .catch(function(){
+              console.log('FAILURE!!');
+            });
+          }
+          ,
 
         restart(){
             this.$forceUpdate()
