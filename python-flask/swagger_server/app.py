@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, Response, send_file, send_from_directory, abort
 import requests
 from flask_cors import CORS
-
+from werkzeug import secure_filename
 import yaml
 from werkzeug.datastructures import FileStorage
 from toscaparser.tosca_template import ToscaTemplate
@@ -18,6 +18,8 @@ DEBUG = True
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config["TOSCA_FILES"] = os.path.join(os.getcwd(), "planning_output")
+app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), "planning_input")
+app.config['MAX_CONTENT_PATH'] = 1000000
 
 CORS(app, resources={r'/*': {'origins': '*'}})
 CURRENT_DIR = os.path.dirname(__file__)
@@ -71,6 +73,13 @@ def get_file_from_url(url, file_name):
         response = requests.get(url)
         out_file.write(response.content)
 
+@app.route('/upload', methods=['POST'])
+def upload_files():
+    if request.method == 'POST':
+        files = request.files['file']
+        for file in files:
+            file.save(secure_filename(file.filename))
+        return "files uploaded successfully"
 
 # http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF
 @app.route('/tosca', methods=['GET'])
@@ -78,6 +87,11 @@ def tosca():
 
     #TODO: Handle wrong requests
     # extract urls from request
+    # if request.method == 'POST':
+    #     files = request.files['file']
+    #     for file in files:
+    #         file.save(secure_filename(file.filename))
+
     git_url = request.args.get('git_url', None)
     performance_url = request.args.get('performance_url', None)
     deadline_url = request.args.get('deadline_url', None)
