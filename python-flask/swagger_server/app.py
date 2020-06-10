@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, Response, send_file, send_from_directory, abort
+from flask import Flask, jsonify, request, Response, send_file, send_from_directory, abort, flash, redirect, url_for
 import requests
 from flask_cors import CORS
 import werkzeug.utils
@@ -17,19 +17,21 @@ DEBUG = True
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-app.config["TOSCA_FILES"] = os.path.join(os.getcwd(), "planning_output")
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), "planning_input")
+app.config['DOWNLOAD_FOLDER'] = os.path.join(os.getcwd(), "planning_output")
 app.config['MAX_CONTENT_PATH'] = 1000000
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+ALLOWED_EXTENSIONS = {'cwl', 'yaml'}
 
 CORS(app, resources={r'/*': {'origins': '*'}})
 CURRENT_DIR = os.path.dirname(__file__)
 
 
-def run_icpc(workflow_file, performance_file, price_file, deadline_file, dag=None):
+def run_icpc(workflow_file, performance_file, price_file, deadline_file, dag=None, combined_input=None):
     wf = Workflow()
     print(os.getcwd())
     infrastructure_file = '../../legacy_code/input/pcp/inf'
-    wf.init(workflow_file, performance_file, price_file, deadline_file, dag)
+    wf.init(workflow_file, performance_file, price_file, deadline_file, dag, combined_input)
     wf.calc_startConfiguration(-1)
 
     start_cost, start_eft = wf.getStartCost()
@@ -67,6 +69,11 @@ def run_icpc(workflow_file, performance_file, price_file, deadline_file, dag=Non
     return wf.instances
 
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 def get_file_from_url(url, file_name):
     # open in binary mode
     with open(file_name, "wb") as out_file:
@@ -74,26 +81,80 @@ def get_file_from_url(url, file_name):
         out_file.write(response.content)
 
 
+def get_iaas_solution(workflow_file_path, input_file_path):
+    # Run cwl parser
+    cwl_parser = CwlParser(workflow_file_path)
+    dag = cwl_parser.g
+    # print(dag.nodes())
+    # print(dag.edges())
+
+    # Load tosca generator
+    tosca_gen = ToscaGenerator()
+    tosca_gen.load_default_template()
+
+    # # Define input
+    # workflow_file = '../../legacy_code/input/pcp/pcp.dag'
+    # combined_input = '../../legacy_code/input/pcp/input_pcp.yaml'
+    performance_file = '../../legacy_code/input/pcp/performance_compile1'
+    price_file = '../../legacy_code/input/pcp/price'
+    deadline_file = '../../legacy_code/input/pcp/deadline'
+    # # performance_file = performance_file_name
+    # price_file = price_file_name
+    # deadline_file = deadline_file_name
+
+    # Run IC-PCP algorithm
+    servers = run_icpc(workflow_file_path, performance_file, price_file, deadline_file, dag, input_file_path)
+
+    # Add needed instances to tosca description
+    for i in range(0, len(servers)):
+        instance = servers[i]
+        x = {'num_cpus': i + 1, 'disk_size': "{} GB".format((i + 1) * 10),
+             'mem_size': "{} MB".format(int((i + 1) * 4096))}
+        instance.properties = x
+        tosca_gen.add_compute_node("server {}".format(i + 1), instance)
+        print(servers[i].properties)
+
+    tosca_file_name = "generated_tosca_description_" + uuid.uuid4().hex
+    tosca_file_loc = os.path.join(app.config['DOWNLOAD_FOLDER'], tosca_file_name)
+    tosca_gen.write_template_to_file(tosca_file_loc)
+    return tosca_file_name
+
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    try:
+        return send_from_directory(app.config["DOWNLOAD_FOLDER"], filename=filename + ".yaml",
+                                   as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
+
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
     if request.method == 'POST':
-        # files = request.files.getlist("file[]")
-        # print(files)
-        # for file in files:
-        #     file.save(werkzeug.utils.secure_filename(file.filename))
+        # if 'file' not in request.files:
+        #     flash('No file present')
+        #     return redirect(request.url)
+
         workflow_file = request.files['workflow_file']
         input_file = request.files['input_file']
-        workflow_file.save(os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(workflow_file.filename)))
-        input_file.save(os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename)))
+        workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
+                                         werkzeug.utils.secure_filename(workflow_file.filename))
+        input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename))
+        workflow_file.save(workflow_file_loc)
+        input_file.save(input_file_loc)
+        tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc)
+        return redirect(url_for('uploaded_file', filename=tosca_file_name))
         return "files uploaded successfully"
 
 
 # http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF
-@app.route('/tosca', methods=['GET'])
-def tosca():
-
-    #TODO: Handle wrong requests
+@app.route('/tosca_url', methods=['GET'])
+def tosca_url():
+    if request.method == 'POST':
+        workflow_file = request.files['workflow_file']
+        input_file = request.files['input_file']
+    # TODO: Handle wrong requests
     # extract urls from request
     # if request.method == 'POST':
     #     files = request.files['file']
@@ -119,38 +180,6 @@ def tosca():
     get_file_from_url(deadline_url, deadline_file_name)
     get_file_from_url(price_url, price_file_name)
 
-    # Run cwl parser
-    cwl_parser = CwlParser(workflow_file_name)
-    dag = cwl_parser.g
-    # print(dag.nodes())
-    # print(dag.edges())
-
-    # Load tosca generator
-    tosca_gen = ToscaGenerator()
-    tosca_gen.load_default_template()
-
-    # Define input
-    workflow_file = '../../legacy_code/input/pcp/pcp.dag'
-    performance_file = '../../legacy_code/input/pcp/performance_compile1'
-    #performance_file = performance_file_name
-    price_file = price_file_name
-    deadline_file = deadline_file_name
-
-    # Run IC-PCP algorithm
-    servers = run_icpc(workflow_file, performance_file, price_file, deadline_file, dag)
-
-    # Add needed instances to tosca description
-    for i in range(0, len(servers)):
-        instance = servers[i]
-        x = {'num_cpus': i + 1, 'disk_size': "{} GB".format((i + 1) * 10),
-             'mem_size': "{} MB".format(int((i + 1) * 4096))}
-        instance.properties = x
-        tosca_gen.add_compute_node("server {}".format(i + 1), instance)
-        print(servers[i].properties)
-
-    tosca_file_name = "generated_tosca_description_" + uuid.uuid4().hex
-    tosca_gen.write_template_to_file(os.path.join(output_folder, tosca_file_name))
-
     # after generating tosca, remove input files
     if os.path.exists(workflow_file_name):
         os.remove(workflow_file_name)
@@ -161,15 +190,12 @@ def tosca():
     if os.path.exists(price_file_name):
         os.remove(price_file_name)
 
-
-    #send generated tosca description to client
+    # send generated tosca description to client
     try:
-        return send_from_directory(app.config["TOSCA_FILES"], filename=tosca_file_name + ".yaml",
+        return send_from_directory(app.config["DOWNLOAD_FOLDER"], filename=tosca_file_name + ".yaml",
                                    as_attachment=True)
     except FileNotFoundError:
         abort(404)
-
-
 
 
 if __name__ == '__main__':

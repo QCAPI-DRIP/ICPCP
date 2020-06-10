@@ -132,21 +132,44 @@ export default {
           formData.append('workflow_file', workflow_file);
           formData.append('input_file', input_file)
 
-             axios.post('http://127.0.0.1:5000/upload',
+          axios.post('http://127.0.0.1:5000/upload',
               formData,
               {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
-              }
-            ).then(function(){
-              console.log('SUCCESS!!');
-            })
-            .catch(function(){
-              console.log('FAILURE!!');
-            });
-          }
-          ,
+              })
+                .then((res) => {
+                    const url = window.URL.createObjectURL(new Blob([res.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', 'IaaS solution.yaml');
+                    document.body.appendChild(link);
+                    link.click();
+                    this.$bvModal.show('bv-modal-finish');
+                    console.log('Sucess')
+                })
+                .catch((error) => {
+                // eslint-disable-next-line
+                console.error(error); 
+                });
+         },
+
+          //    axios.post('http://127.0.0.1:5000/upload',
+          //     formData,
+          //     {
+          //       headers: {
+          //           'Content-Type': 'multipart/form-data'
+          //       }
+          //     }
+          //   ).then(function(){
+          //     console.log('SUCCESS!!');
+          //   })
+          //   .catch(function(){
+          //     console.log('FAILURE!!');
+          //   });
+          // }
+          // ,
 
         restart(){
             this.$forceUpdate()
