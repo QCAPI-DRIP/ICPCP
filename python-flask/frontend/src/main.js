@@ -16,6 +16,7 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
   state: {
     workflow_url: "",
+    input_url: "",
     price_url: "",
     deadline_url: "",
     performance_url: "",
@@ -26,6 +27,9 @@ const store = new Vuex.Store({
   mutations: {
     set_workflow(state, payload) {
       state.workflow_url = payload
+    },
+    set_input(state, payload) {
+      state.input_url = payload
     },
     set_workflow_file(state, payload) {
       state.workflow_file = payload

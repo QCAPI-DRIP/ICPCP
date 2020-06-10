@@ -15,7 +15,7 @@
             :steps="demoSteps"
             @completed-step="completeStep"
             @active-step="isStepActive"
-            @stepper-finished="getToscaViaFiles"
+            @stepper-finished="checkInput"
           />
         </div>
       </div>
@@ -105,9 +105,25 @@ export default {
                 }
             })
         },
+
+        checkInput() {
+        if(this.$store.state.workflow_file != null && this.$store.state.input_file != null){
+            this.getToscaViaFiles();
+        }
+          else if(this.$store.state.workflow_file !== "" && this.$store.state.input_file !== ""){
+              this.getToscaViaUrl();
+          }
+
+          else{
+            console.log("There is something wrong with the input, go back to start of wizard")
+            this.restart()
+          }
+        },
         // Executed when @stepper-finished event is triggered
-        getTosca() {
-            const path = `http://127.0.0.1:5000/tosca?git_url=${this.$store.state.workflow_url}&performance_url=${this.$store.state.performance_url}&deadline_url=${this.$store.state.deadline_url}&price_url=${this.$store.state.price_url}`;
+        getToscaViaUrl() {
+            //const path = `http://127.0.0.1:5000/tosca?git_url=${this.$store.state.workflow_url}&performance_url=${this.$store.state.performance_url}&deadline_url=${this.$store.state.deadline_url}&price_url=${this.$store.state.price_url}`;
+            const path = `http://127.0.0.1:5000/tosca_url?workflow_url=${this.$store.state.workflow_url}&input_url=${this.$store.state.input_url}`
+
             axios.get(path)
                 .then((res) => {
                     const url = window.URL.createObjectURL(new Blob([res.data]));

@@ -119,6 +119,9 @@
             },
             deadline() {
                 return this.form.deadline_url;
+            },
+             input() {
+                return this.form.input_url;
             }
         },
         watch: {
@@ -130,6 +133,13 @@
             },
             deadline() {
                     this.$store.commit('set_deadline', this.form.deadline_url)
+            },
+            input() { if (this.form.input_url !== "") {
+                        this.$store.commit('set_input', this.form.input_url)
+                        this.$emit('can-continue', {value: true});
+                    } else {
+                        this.$emit('can-continue', {value: false});
+                    }
             },
             input_file: {
                 handler(val){

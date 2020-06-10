@@ -149,53 +149,46 @@ def upload_files():
 
 
 # http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF
+# http://127.0.0.1:5000/tosca_url?workflow_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&input_url=https://pastebin.com/raw/HakSvgsA
 @app.route('/tosca_url', methods=['GET'])
 def tosca_url():
-    if request.method == 'POST':
-        workflow_file = request.files['workflow_file']
-        input_file = request.files['input_file']
-    # TODO: Handle wrong requests
-    # extract urls from request
-    # if request.method == 'POST':
-    #     files = request.files['file']
-    #     for file in files:
-    #         file.save(secure_filename(file.filename))
 
-    git_url = request.args.get('git_url', None)
-    performance_url = request.args.get('performance_url', None)
-    deadline_url = request.args.get('deadline_url', None)
-    price_url = request.args.get('price_url', None)
+    # TODO: Handle wrong requests
+
+    workflow_url = request.args.get('workflow_url', None)
+    input_url = request.args.get('input_url', None)
+    # performance_url = request.args.get('performance_url', None)
+    # deadline_url = request.args.get('deadline_url', None)
+    # price_url = request.args.get('price_url', None)
 
     # set file names
-    input_folder = os.path.join(CURRENT_DIR, 'planning_input')
-    output_folder = os.path.join(CURRENT_DIR, 'planning_output')
-    workflow_file_name = os.path.join(input_folder, git_url.split("/")[-1] + "_" + uuid.uuid4().hex)
-    performance_file_name = os.path.join(input_folder, "performance_" + uuid.uuid4().hex)
-    deadline_file_name = os.path.join(input_folder, "deadline_" + uuid.uuid4().hex)
-    price_file_name = os.path.join(input_folder, "price_" + uuid.uuid4().hex)
+    workflow_file_location = os.path.join(app.config['UPLOAD_FOLDER'], workflow_url.split("/")[-1] + "_" + uuid.uuid4().hex)
+    input_file_location = os.path.join(app.config['UPLOAD_FOLDER'], "input_icpcp_" + uuid.uuid4().hex)
+    # performance_file_name = os.path.join(input_folder, "performance_" + uuid.uuid4().hex)
+    # deadline_file_name = os.path.join(input_folder, "deadline_" + uuid.uuid4().hex)
+    # price_file_name = os.path.join(input_folder, "price_" + uuid.uuid4().hex)
 
     # download files from url
-    get_file_from_url(git_url, workflow_file_name)
-    get_file_from_url(performance_url, performance_file_name)
-    get_file_from_url(deadline_url, deadline_file_name)
-    get_file_from_url(price_url, price_file_name)
+    get_file_from_url(workflow_url, workflow_file_location)
+    get_file_from_url(input_url, input_file_location)
+    # get_file_from_url(performance_url, performance_file_name)
+    # get_file_from_url(deadline_url, deadline_file_name)
+    # get_file_from_url(price_url, price_file_name)
 
+    # get IaaS solution
+    tosca_file_name = get_iaas_solution(workflow_file_location, input_file_location)
     # after generating tosca, remove input files
-    if os.path.exists(workflow_file_name):
-        os.remove(workflow_file_name)
-    if os.path.exists(performance_file_name):
-        os.remove(performance_file_name)
-    if os.path.exists(deadline_file_name):
-        os.remove(deadline_file_name)
-    if os.path.exists(price_file_name):
-        os.remove(price_file_name)
+    # if os.path.exists(workflow_file_name):
+    #     os.remove(workflow_file_name)
+    # if os.path.exists(performance_file_name):
+    #     os.remove(performance_file_name)
+    # if os.path.exists(deadline_file_name):
+    #     os.remove(deadline_file_name)
+    # if os.path.exists(price_file_name):
+    #     os.remove(price_file_name)
 
     # send generated tosca description to client
-    try:
-        return send_from_directory(app.config["DOWNLOAD_FOLDER"], filename=tosca_file_name + ".yaml",
-                                   as_attachment=True)
-    except FileNotFoundError:
-        abort(404)
+    return redirect(url_for('uploaded_file', filename=tosca_file_name))
 
 
 if __name__ == '__main__':

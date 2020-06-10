@@ -22,8 +22,8 @@
     <form>
     <div class="form-group">
         <label for="workflowUrl">Enter url to workflow file</label>
-        <input :class="['input', ($v.workflow_url.$error) ? 'is-danger' : '']"
-        type="url" class="form-control" id="WorkflowUrl" placeholder="linktoworkflow.cwl" v-model="workflow_url">
+        <input :class="['input', ($v.form.workflow_url.$error) ? 'is-danger' : '']"
+        type="url" class="form-control" id="WorkflowUrl" placeholder="linktoworkflow.cwl" v-model="form.workflow_url">
     </div>
     <div class="form-group">
     <label for="workflowFile">Or specify workflow file</label>
@@ -57,25 +57,26 @@
         mixins: [validationMixin],
         data() {
             return {
-                workflow_url: '',
+                form: {
+                    workflow_url: '',
+                },
                 workflow_file: null
             }
         },
         validations: {
+            form: {
                 workflow_url: {
                     required,
                     url
+                }
             }
         },
         watch: {
-            workflow_url: {
+            form: {
                 handler(val){
-                    if (val != null) {
-                    this.$store.commit('set_workflow', val)
-                    this.$emit('can-continue', {value: true});
-                } else {
-                        this.$emit('can-continue', {value: false});
-                }
+                    this.$store.commit('set_workflow', val.workflow_url)
+                },
+                deep: true
             },
              workflow_file: {
                 handler(val){
@@ -113,6 +114,5 @@
             }
         }
     }
-}
 
 </script>
