@@ -1,11 +1,28 @@
 <template>
   <div style="padding: 2rem 3rem; text-align: left;">
         <form>
-    <div class="form-group">
+
+        <b-form-group id="input_input-group-1" label="Enter the raw url to the input below" label-for="input_input-1">
+        <b-form-input
+          id="input_input-1"
+          name="input_input-1"
+          v-model="$v.input_url.$model"
+          :state="validateState('input_url')"
+          aria-describedby="input-1-live-feedback"
+          placeholder= "https://pastebin.com/raw/HakSvgsA"
+        ></b-form-input>
+
+        <b-form-invalid-feedback
+          id="input-1-live-feedback"
+        >Please insert a valid url, linking to the input file</b-form-invalid-feedback>
+        </b-form-group>
+    <!-- <div class="form-group">
         <label for="inputUrl">Enter url to input file</label>
         <input :class="['input', ($v.form.input_url.$error) ? 'is-danger' : '']"
         type="url" class="form-control" id="InputUrl" placeholder="linktoinputfile.yaml" v-model="form.input_url">
-    </div>
+    </div> -->
+
+    
     <div class="form-group">
     <label for="inputFile">Or specify input file</label>
     <b-form-file
@@ -81,66 +98,30 @@
         mixins: [validationMixin],
         data() {
             return {
-                form: {
-                    performance_url: '',
-                    price_url: '',
-                    deadline_url: '',
-                    input_url: '',
-                },
+                input_url: '',
                 input_file: null
             }
         },
+         methods: {
+        validateState(input_url) {
+          const { $dirty, $error } = this.$v[input_url];
+          return $dirty ? !$error : null;
+        },
+        resetForm() {
+          this.input_url = '';
+
+          this.$nextTick(() => {
+            this.$v.$reset();
+          });
+        }
+         },
         validations: {
-            form: {
-                performance_url: {
-                    required,
-                    url
-                },
-                price_url: {
-                    required,
-                    url
-                },
-                deadline_url: {
-                    required,
-                    url
-                },
                 input_url: {
                     required,
                     url
                 }
-            }
-        },
-        computed: {
-            performance() {
-                return this.form.performance_url;
-            },
-            price() {
-                return this.form.price_url;
-            },
-            deadline() {
-                return this.form.deadline_url;
-            },
-             input() {
-                return this.form.input_url;
-            }
         },
         watch: {
-            performance() {
-                    this.$store.commit('set_performance', this.form.performance_url)
-                },
-            price() {
-                    this.$store.commit('set_price', this.form.price_url)
-            },
-            deadline() {
-                    this.$store.commit('set_deadline', this.form.deadline_url)
-            },
-            input() { if (this.form.input_url !== "") {
-                        this.$store.commit('set_input', this.form.input_url)
-                        this.$emit('can-continue', {value: true});
-                    } else {
-                        this.$emit('can-continue', {value: false});
-                    }
-            },
             input_file: {
                 handler(val){
                     if (val != null) {
@@ -149,10 +130,12 @@
                     } else {
                         this.$emit('can-continue', {value: false});
                     }
-                },
+                }
+            },
             $v: {
                 handler: function (val) {
-                    if(!val.$invalid) {
+                    if(!val.input_url.$invalid) {
+                        this.$store.commit('set_input', val.input_url.$model)
                         this.$emit('can-continue', {value: true});
                     } else {
                         this.$emit('can-continue', {value: false});
@@ -162,18 +145,18 @@
             },
             clickedNext(val) {
                 if(val === true) {
-                    this.$v.form.$touch();
+                    this.$v.$touch();
                 }
             }
         },
         mounted() {
-            if(!this.$v.$invalid) {
+            if(!this.$v.input_url.$invalid) {
                 this.$emit('can-continue', {value: true});
             } else {
                 this.$emit('can-continue', {value: false});
             }
         }
     }
-  }
+
 
 </script>

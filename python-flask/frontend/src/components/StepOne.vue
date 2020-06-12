@@ -117,16 +117,16 @@ body {
         }
         },
         watch: {
-            // workflow_url: {
-            //     handler(val){
-            //         if (val != null) {
-            //         this.$store.commit('set_workflow', val)
-            //         this.$emit('can-continue', {value: true});
-            //      } else {
-            //             this.$emit('can-continue', {value: false});
-            //     }
-            //     }
-            // },
+            workflow_url: {
+                handler(val){
+                    if (val != null) {
+                    this.$store.commit('set_workflow', val)
+                    this.$emit('can-continue', {value: true});
+                 } else {
+                        this.$emit('can-continue', {value: false});
+                }
+                }
+            },
              workflow_file: {
                 handler(val){
                     if (val !== null) {
@@ -141,6 +141,7 @@ body {
             $v: {
                 handler: function (val) {
                     if(!val.workflow_url.$invalid) {
+                        this.$store.commit('set_workflow', val.workflow_url.$model)
                         this.$emit('can-continue', {value: true});
                     } else {
                         this.$emit('can-continue', {value: false});
