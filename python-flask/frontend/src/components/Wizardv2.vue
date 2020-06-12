@@ -110,7 +110,7 @@ export default {
         if(this.$store.state.workflow_file != null && this.$store.state.input_file != null){
             this.getToscaViaFiles();
         }
-          else if(this.$store.state.workflow_file !== "" && this.$store.state.input_file !== ""){
+          else if(this.$store.state.workflow_file != "" && this.$store.state.input_file != ""){
               this.getToscaViaUrl();
           }
 
