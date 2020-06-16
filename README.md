@@ -1,5 +1,6 @@
 # Quality-Critical WOrkflow Planner Q-CWOP
-planner algorithms
+
+Quality-Critical WOrkflow Planner
 
 # Additional Resources
 ## Alogrithms 
