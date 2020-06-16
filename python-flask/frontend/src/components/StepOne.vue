@@ -18,7 +18,7 @@
         This url is invalid
       </p>
     </div> -->
-    <b-form-group id="workflow_input-group-1" label="Enter the raw url to the workflow below" label-for="workflow_input-1">
+    <b-form-group id="form-label-text" label="Enter the raw url to the workflow below" label-for="workflow_input-1">
         <b-form-input
           id="workflow_input-1"
           name="workflow_input-1"
@@ -56,7 +56,7 @@
 
 
     <div class="form-group">
-    <label for="workflowFile">Or specify workflow file</label>
+    <label id="form-label-text" for="workflowFile">Or specify the workflow file</label>
     <b-form-file
       v-model="workflow_file"
       :state="null"

@@ -9,7 +9,7 @@
       <router-link to="/wizard">Wizard</router-link> |
       <router-link to="/wizardv2">Wizardv2</router-link>  -->
     </div>
-    <router-view/>
+    <router-view />
   </div>
 </template>
 
@@ -25,6 +25,10 @@
 #nav a {
   font-weight: bold;
   color: #2c3e50;
+}
+#form-label-text{
+   font-family: Arial, Helvetica, sans-serif;
+   font-size: 20px
 }
 
 #nav a.router-link-exact-active {
