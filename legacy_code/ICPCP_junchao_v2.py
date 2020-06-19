@@ -11,14 +11,14 @@ import random
 import networkx as nx
 import numpy as np
 import json
-from NewInstance import NewInstance
+#from NewInstance import NewInstance
 from subprocess import call
 import time
 from collections import deque
 
 from optparse import OptionParser
 
-from __builtin__ import True
+#from __builtin__ import True
      
 class Workflow():     
     
@@ -1117,7 +1117,8 @@ if __name__ == '__main__':
     wf.update_node(wf.number_of_nodes()-1)
 
     # check PCP end situation
-    wf.updateGraphTimes()
+    wf.updateGraphTimes()
+
     retVal =  wf.checkGraphTimes()
     print "checkGraphTimes: retVal="+str(retVal)
     tot_idle = wf.checkIdleTime()
