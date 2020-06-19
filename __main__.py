@@ -1,17 +1,14 @@
-from flask import Flask, jsonify, request, Response, send_file, send_from_directory, abort, flash, redirect, url_for
-import requests
-from flask_cors import CORS
-import werkzeug.utils
-import yaml
-from werkzeug.datastructures import FileStorage
-from toscaparser.tosca_template import ToscaTemplate
-from legacy_code.ICPCP_TOSCA import Workflow
-from legacy_code.cwlparser import CwlParser
-from legacy_code.Errors.api_error import APIError
-from legacy_code.tosca_generator import ToscaGenerator
-
 import os
 import uuid
+
+import requests
+import werkzeug.utils
+from flask import Flask, request, send_from_directory, abort, redirect, url_for
+from flask_cors import CORS
+
+from legacy_code.ICPCP_TOSCA import Workflow
+from legacy_code.cwlparser import CwlParser
+from legacy_code.tosca_generator import ToscaGenerator
 
 DEBUG = True
 

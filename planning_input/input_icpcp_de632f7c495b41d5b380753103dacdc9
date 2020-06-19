@@ -1,0 +1,11 @@
+# IC-PCP input
+- price:
+    - 5
+    - 2
+    - 1
+- performance:
+    vm1: [1,2,5]
+    vm2: [2,5,12]
+    vm3: [3,8,16]
+
+- deadline: 30
