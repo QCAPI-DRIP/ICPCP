@@ -10,7 +10,7 @@ description: Template for deploying a single server with predefined properties.
 topology_template:
   node_templates:
     server1:
-      type: tosca.nodes.Compute.Time
+      type: tosca.nodes.QC.VM.Compute
       capabilities:
         host:
           properties:
