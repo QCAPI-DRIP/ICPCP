@@ -16,8 +16,6 @@ topology_template:
       properties:
         running_time: 200
       requirements:
-        host: provider1
-      requirements:
       - host:
           capability: tosca.capabilities.Host.Compute
           node: provider1
