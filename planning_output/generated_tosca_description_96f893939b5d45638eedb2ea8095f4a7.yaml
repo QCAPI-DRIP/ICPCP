@@ -9,15 +9,15 @@ imports:
 description: Template for deploying a single server with predefined properties.
 topology_template:
   node_templates:
+  
+    compute:
+      
     server1:
       type: tosca.nodes.QC.VM.Compute
-      capabilities:
-        host:
-          properties:
-            num_cpus: 1
-            disk_size: 10 GB
-            mem_size: 4096 MB
       properties:
+        num_cpus: 1
+        disk_size: 10 GB
+        mem_size: 4096 MB
         running_time: 200
       requirements:
       - host:
