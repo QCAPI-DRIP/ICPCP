@@ -9,8 +9,7 @@ imports:
 description: Template for deploying a single server with predefined properties.
 topology_template:
   node_templates:
-  
-    compute:
+ 
       
     server1:
       type: tosca.nodes.QC.VM.Compute
