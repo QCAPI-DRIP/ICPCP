@@ -9,10 +9,9 @@ node_types:
         type: integer
         required: false
         description: "the time units needed for this resource to execute the assigned workflow tasks"
-
     requirements:
       - host:
-          capability: tosca.capabilities.Compute
+          capability: tosca.capabilities.Comput
           node: tosca.nodes.CloudProvider
           relationship: tosca.relationships.HostedOn
 
@@ -29,4 +28,7 @@ node_types:
         type: string
         required: true
         default: "West Europe"
+    capabilities:
+      host:
+        type: tosca.capabilities.Host      
 
