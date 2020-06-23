@@ -11,7 +11,7 @@ node_types:
         description: "the time units needed for this resource to execute the assigned workflow tasks"
     requirements:
       - host:
-          capability: tosca.capabilities.Comput
+          capability: tosca.capabilities.Host
           node: tosca.nodes.CloudProvider
           relationship: tosca.relationships.HostedOn
 
@@ -31,4 +31,14 @@ node_types:
     capabilities:
       host:
         type: tosca.capabilities.Host      
+        
+        
+capability_types:
+
+  tosca.capabilities.Host:
+    derived_from: tosca.capabilities.Root
+    properties:
+      some_properties:
+        type: string
+        required: no        
 
