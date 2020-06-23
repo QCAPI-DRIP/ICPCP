@@ -1,6 +1,10 @@
 tosca_definitions_version: tosca_simple_yaml_1_0
 imports:
-  - https://raw.githubusercontent.com/QCDIS/Q-CWOP-backend/feature/tosca-extension/tosca/nodes.yaml
+  - nodes: https://raw.githubusercontent.com/QCDIS/sdia-tosca/master/types/nodes.yaml
+#   - data: https://raw.githubusercontent.com/QCDIS/sdia-tosca/master/types/data.yml
+  - capabilities: https://raw.githubusercontent.com/QCDIS/sdia-tosca/master/types/capabilities.yaml
+#   - policies: https://raw.githubusercontent.com/QCDIS/sdia-tosca/master/types/policies.yaml
+#   - interfaces: https://raw.githubusercontent.com/QCDIS/sdia-tosca/master/types/interfaces.yml
   
 description: Template for deploying a single server with predefined properties.
 topology_template:
