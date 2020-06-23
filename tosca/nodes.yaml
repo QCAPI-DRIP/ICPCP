@@ -9,6 +9,19 @@ node_types:
         type: integer
         required: false
         description: "the time units needed for this resource to execute the assigned workflow tasks"
+      num_cpus:
+        type: integer
+        required: true
+        default: 1
+        constraints:
+          - greater_or_equal: 1        
+      disk_size:
+        type: scalar-unit.size
+        required: true
+        default: 20000 MB
+        constraints:
+          - greater_or_equal: 500 MB          
+          
     capabilities:
       host:
         type: tosca.capabilities.Host.Software
