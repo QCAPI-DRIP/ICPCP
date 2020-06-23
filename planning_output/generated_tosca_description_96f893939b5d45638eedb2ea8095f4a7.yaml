@@ -35,7 +35,7 @@ topology_template:
           relationship: tosca.relationships.HostedOn
 
     provider1:
-      type: tosca.nodes.CloudProdier
+      type: tosca.nodes.CloudProvider
       properties:
         provider: "Azure"
         datacenter: "West Europe"
