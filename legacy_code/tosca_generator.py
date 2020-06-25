@@ -22,6 +22,21 @@ class ToscaGenerator:
         else:
             print("First load a tosca template")
 
+    # def add_software_component(self, name, instance):
+    #     """Add tasks to tosca template"""
+    #     properties = instance.properties
+    #     if self.template is not None:
+    #         mydict = {'type': "tosca.nodes.SoftwareComponent", 'requirements': {'host':  properties}}
+    #         if 'topology_template' in self.template and 'node_templates' in self.template['topology_template']:
+    #             if self.template['topology_template']['node_templates'] is None:
+    #                 self.template['topology_template']['node_templates'] = {name: mydict}
+    #             else:
+    #                 self.template['topology_template']['node_templates'][name] = mydict
+    #         else:
+    #             print("Invalid tosca template provided")
+    #     else:
+    #         print("First load a tosca template")
+
 
 
 
