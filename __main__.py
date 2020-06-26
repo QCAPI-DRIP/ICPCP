@@ -170,10 +170,10 @@ def tosca_url():
 
 
 if __name__ == '__main__':
-    # git_url = 'http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF&deadline_url=https://pastebin.com/raw/1Y7XEFe8&price_url=https://pastebin.com/raw/ZaNbfLzP'
-    # file_name = git_url.split('/')[-1]
-    # get_file_from_url(git_url, file_name)
-    input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
-    workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
-    get_iaas_solution(workflow_file, input_pcp)
-    #app.run()
+    run_without_flask = True
+    if run_without_flask:
+        input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
+        workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
+        get_iaas_solution(workflow_file, input_pcp)
+    else:
+        app.run()
