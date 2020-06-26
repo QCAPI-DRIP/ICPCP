@@ -288,7 +288,7 @@ class Workflow:
                     self.assigned_list[pcp[0]], pcp[0]]
                 # save the assigned VM in the instance list
                 # TODO: Decision of the time slot for the new instance
-                ni = NewInstance(assigned_vm, self.G.node[pcp[len(pcp) - 1]]['est'], self.G.node[pcp[0]]['eft'], pcp)
+                ni = NewInstance(assigned_vm, self.vm_price[assigned_vm], self.G.node[pcp[len(pcp) - 1]]['est'], self.G.node[pcp[0]]['eft'], pcp)
                 self.instances.append(ni)
             elif assigned_vm == -1:
                 print("the available resources cannot meet the deadline with the IC-PCP algorithm")
