@@ -4,25 +4,39 @@ import re
 import random
 import networkx as nx
 import numpy as np
-from legacy_code.NewInstance import NewInstance as instance
+from legacy_code.NewInstance import NewInstance
 import yaml
 
-class NaivePlanner:
-    [1,2,3] [1,2,3,4]
-    def planTasks(self, dag, combined_input):
-        #load input
-        with open(combined_input, 'r') as stream:
-            data_loaded = yaml.safe_load(stream)
-            self.vm_price = data_loaded[0]["price"]
-            perf_data = data_loaded[1]["performance"]
-            self.deadline = data_loaded[2]["deadline"]
-            l = []
-            for key, value in perf_data.items():
-                l.append(value)
+
+    #[1,2,3,4] [1,2,3]
+
+def naivePlan(dag, combined_input):
+    servers = []
+    #load input
+    with open(combined_input, 'r') as stream:
+        data_loaded = yaml.safe_load(stream)
+        vm_price = data_loaded[0]["price"]
+        number_of_vms = len(vm_price)
+        number_of_tasks = len(dag.nodes())
+
+    count = 0
+    if number_of_tasks > number_of_vms:
+        for node in dag.nodes():
+            vm = NewInstance(count, vm_price[count], 0, 0, [node])
+            count += 1
+            if count == number_of_vms - 1:
+                count = 0
+        return servers
+
+    else:
+        for node in dag.nodes():
+            vm = NewInstance(count, vm_price[count], 0, 0, [node])
+            servers.append(vm)
+            count += 1
+        return servers
 
 
-        num_tasks = len(dag.nodes())
-        for node in dag.nodes()
+
 
 
 

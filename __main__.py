@@ -9,6 +9,7 @@ from flask_cors import CORS
 from legacy_code.ICPCP_TOSCA import Workflow
 from legacy_code.cwlparser import CwlParser
 from legacy_code.tosca_generator import ToscaGenerator
+import legacy_code.naive_planner as plan
 
 DEBUG = True
 
@@ -106,6 +107,14 @@ def get_iaas_solution(workflow_file_path, input_file_path):
     tosca_gen.write_template_to_file(tosca_file_loc)
     return tosca_file_name
 
+def runNaivePlanner(workflow_file_path, input_file_path):
+    cwl_parser = CwlParser(workflow_file_path)
+    task_names = cwl_parser.tasks
+    dag = cwl_parser.g
+    servers = plan.naivePlan(dag, input_file_path)
+    for vm in servers:
+        for task in vm.task_list:
+            print("{} -----> {}".format(vm.vm_type, task_names[task]))
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -174,6 +183,7 @@ if __name__ == '__main__':
     if run_without_flask:
         input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
         workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
-        get_iaas_solution(workflow_file, input_pcp)
+        runNaivePlanner(workflow_file, input_pcp)
+        #get_iaas_solution(workflow_file, input_pcp)
     else:
         app.run()
