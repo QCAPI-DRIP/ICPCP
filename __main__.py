@@ -24,11 +24,10 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 CURRENT_DIR = os.path.dirname(__file__)
 
 
-def run_icpc(workflow_file, performance_file, price_file, deadline_file, dag=None, combined_input=None):
+def run_icpc(dag=None, combined_input=None):
     wf = Workflow()
     print(os.getcwd())
-    infrastructure_file = '../../legacy_code/input/pcp/inf'
-    wf.init(workflow_file, performance_file, price_file, deadline_file, dag, combined_input)
+    wf.init(dag, combined_input)
     wf.calc_startConfiguration(-1)
 
     start_cost, start_eft = wf.getStartCost()
@@ -89,18 +88,9 @@ def get_iaas_solution(workflow_file_path, input_file_path):
     tosca_gen = ToscaGenerator()
     tosca_gen.load_default_template()
 
-    # # Define input
-    # workflow_file = '../../legacy_code/input/pcp/pcp.dag'
-    # combined_input = '../../legacy_code/input/pcp/input_pcp.yaml'
-    performance_file = '../../legacy_code/input/pcp/performance_compile1'
-    price_file = '../../legacy_code/input/pcp/price'
-    deadline_file = '../../legacy_code/input/pcp/deadline'
-    # # performance_file = performance_file_name
-    # price_file = price_file_name
-    # deadline_file = deadline_file_name
 
     # Run IC-PCP algorithm
-    servers = run_icpc(workflow_file_path, performance_file, price_file, deadline_file, dag, input_file_path)
+    servers = run_icpc(dag, input_file_path)
 
     # Add needed instances to tosca description
     for i in range(0, len(servers)):
@@ -154,23 +144,14 @@ def tosca_url():
 
     workflow_url = request.args.get('workflow_url', None)
     input_url = request.args.get('input_url', None)
-    # performance_url = request.args.get('performance_url', None)
-    # deadline_url = request.args.get('deadline_url', None)
-    # price_url = request.args.get('price_url', None)
 
     # set file names
     workflow_file_location = os.path.join(app.config['UPLOAD_FOLDER'], workflow_url.split("/")[-1] + "_" + uuid.uuid4().hex)
     input_file_location = os.path.join(app.config['UPLOAD_FOLDER'], "input_icpcp_" + uuid.uuid4().hex)
-    # performance_file_name = os.path.join(input_folder, "performance_" + uuid.uuid4().hex)
-    # deadline_file_name = os.path.join(input_folder, "deadline_" + uuid.uuid4().hex)
-    # price_file_name = os.path.join(input_folder, "price_" + uuid.uuid4().hex)
 
     # download files from url
     get_file_from_url(workflow_url, workflow_file_location)
     get_file_from_url(input_url, input_file_location)
-    # get_file_from_url(performance_url, performance_file_name)
-    # get_file_from_url(deadline_url, deadline_file_name)
-    # get_file_from_url(price_url, price_file_name)
 
     # get IaaS solution
     tosca_file_name = get_iaas_solution(workflow_file_location, input_file_location)
@@ -192,4 +173,7 @@ if __name__ == '__main__':
     # git_url = 'http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF&deadline_url=https://pastebin.com/raw/1Y7XEFe8&price_url=https://pastebin.com/raw/ZaNbfLzP'
     # file_name = git_url.split('/')[-1]
     # get_file_from_url(git_url, file_name)
-    app.run()
+    input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
+    workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
+    get_iaas_solution(workflow_file, input_pcp)
+    #app.run()

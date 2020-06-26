@@ -28,21 +28,7 @@ from networkx import DiGraph
 class Workflow:
 
 
-    # The following two functions are to initialize the EST, EFT and LFT
-    # calculate the earliest start time and earliest finish time
-    #
-    # def __int__(self, task_graph, performance_file_name, price_file_name, deadline_file_name):
-    #     self.visited = []
-    #     self.G = task_graph
-    #     self.vertex_num = 0
-    #     self.successful = 0
-    #     self.deadline = 0
-    #
-    #     for i in range(0, G.number_of_nodes())
-
-
-
-    def init(self, workflow_file_name, performance_file_name, price_file_name, deadline_file_name, dag=None, combined_input=None):
+    def init(self, dag=None, combined_input=None):
 
         # Initialization
         self.visited = []
@@ -51,52 +37,18 @@ class Workflow:
         self.successful = 0
         self.deadline = 0
 
-        if dag is None:
-            l = [list(map(int, line.split(','))) for line in open(performance_file_name, 'r')]
-            deadline = open(deadline_file_name, 'r').readline()
-            self.deadline = int(deadline)
-            self.vm_price = list(map(int, open(price_file_name, 'r').readline().split(',')))
+        #load input
+        self.G = dag
+        self.vertex_num = len(dag.nodes())
 
-            # Read the workflow information
-            with open(workflow_file_name, 'r') as f:
-                data = json.load(f)
-                f.close
-
-            for (key, value) in list(data.items()):
-                if isinstance(value, list):
-                    if key == 'nodes':
-                        # self.vertex_num = len(value)
-                        # print "nodes:",value
-                        for node in value:
-                            self.G.add_node(self.vertex_num, order=node['order'], name=node['name'], est=-1, eft=-1, lst=-1,
-                                            lft=-1)
-                            self.vertex_num += 1
-                    if key == 'links':
-                        # print "links:",value
-                        names = nx.get_node_attributes(self.G, 'name')
-                        # print names
-
-                        for link in value:
-                            s = -1
-                            t = -1
-                            for o, n in names.items():
-                                if n == link['source']:
-                                    s = o
-                                if n == link['target']:
-                                    t = o
-                            self.G.add_weighted_edges_from([(s, t, link['throughput'])])
-        else:
-            self.G = dag
-            self.vertex_num = len(dag.nodes())
-
-            with open(combined_input, 'r') as stream:
-                data_loaded = yaml.safe_load(stream)
-                self.vm_price = data_loaded[0]["price"]
-                self.deadline = data_loaded[2]["deadline"]
-                perf_data = data_loaded[1]["performance"]
-                l = []
-                for key, value in perf_data.items():
-                    l.append(value)
+        with open(combined_input, 'r') as stream:
+            data_loaded = yaml.safe_load(stream)
+            self.vm_price = data_loaded[0]["price"]
+            self.deadline = data_loaded[2]["deadline"]
+            perf_data = data_loaded[1]["performance"]
+            l = []
+            for key, value in perf_data.items():
+                l.append(value)
 
 
 
