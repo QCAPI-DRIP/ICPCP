@@ -92,9 +92,12 @@ def get_iaas_solution(workflow_file_path, input_file_path):
 
     # Run IC-PCP algorithm
     servers = run_icpc(dag, input_file_path)
-
+    total_cost = 0
+    make_span = 0
     # Add needed instances to tosca description
     for i in range(0, len(servers)):
+        make_span += servers[i].get_duration()
+        total_cost += servers[i].get_cost()
         instance = servers[i]
         x = {'num_cpus': i + 1, 'disk_size': "{} GB".format((i + 1) * 10),
              'mem_size': "{} MB".format(int((i + 1) * 4096))}
@@ -102,6 +105,8 @@ def get_iaas_solution(workflow_file_path, input_file_path):
         tosca_gen.add_compute_node("server {}".format(i + 1), instance)
         print(servers[i].properties)
 
+    print("Total costs = {}".format(total_cost))
+    print("Makespan = {}".format(make_span))
     tosca_file_name = "generated_tosca_description_" + uuid.uuid4().hex
     tosca_file_loc = os.path.join(app.config['DOWNLOAD_FOLDER'], tosca_file_name)
     tosca_gen.write_template_to_file(tosca_file_loc)
@@ -183,7 +188,7 @@ if __name__ == '__main__':
     if run_without_flask:
         input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
         workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
-        runNaivePlanner(workflow_file, input_pcp)
-        #get_iaas_solution(workflow_file, input_pcp)
+        #runNaivePlanner(workflow_file, input_pcp)
+        get_iaas_solution(workflow_file, input_pcp)
     else:
         app.run()
