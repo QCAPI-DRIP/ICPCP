@@ -3,7 +3,7 @@ import uuid
 
 import requests
 import werkzeug.utils
-from flask import Flask, request, send_from_directory, abort, redirect, url_for
+from flask import Flask, request, send_from_directory, abort, redirect, url_for, jsonify
 from flask_cors import CORS
 
 from legacy_code.ICPCP_TOSCA import Workflow
@@ -78,7 +78,7 @@ def get_file_from_url(url, file_name):
         out_file.write(response.content)
 
 
-def get_iaas_solution(workflow_file_path, input_file_path):
+def get_iaas_solution(workflow_file_path, input_file_path, save=None):
     # Run cwl parser
     cwl_parser = CwlParser(workflow_file_path)
     dag = cwl_parser.g
@@ -88,7 +88,6 @@ def get_iaas_solution(workflow_file_path, input_file_path):
     # Load tosca generator
     tosca_gen = ToscaGenerator()
     tosca_gen.load_default_template()
-
 
     # Run IC-PCP algorithm
     servers = run_icpc(dag, input_file_path)
@@ -107,12 +106,16 @@ def get_iaas_solution(workflow_file_path, input_file_path):
 
     print("Total costs = {}".format(total_cost))
     print("Makespan = {}".format(make_span))
+
+    if save == None:
+        return total_cost, make_span
     tosca_file_name = "generated_tosca_description_" + uuid.uuid4().hex
     tosca_file_loc = os.path.join(app.config['DOWNLOAD_FOLDER'], tosca_file_name)
     tosca_gen.write_template_to_file(tosca_file_loc)
     return tosca_file_name
 
-def runNaivePlanner(workflow_file_path, input_file_path):
+
+def run_naive_planner(workflow_file_path, input_file_path):
     cwl_parser = CwlParser(workflow_file_path)
     task_names = cwl_parser.tasks
     dag = cwl_parser.g
@@ -120,6 +123,7 @@ def runNaivePlanner(workflow_file_path, input_file_path):
     for vm in servers:
         for task in vm.task_list:
             print("{} -----> {}".format(vm.vm_type, task_names[task]))
+
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -144,23 +148,87 @@ def upload_files():
         input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename))
         workflow_file.save(workflow_file_loc)
         input_file.save(input_file_loc)
-        tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc)
+        tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
         return redirect(url_for('uploaded_file', filename=tosca_file_name))
         return "files uploaded successfully"
+
+
+@app.route('/optimizer', methods=['POST'])
+def compare_performance():
+    if request.method == 'POST':
+        file_names = []
+        filtered_file_names = []
+        # tuple in the form of (total_costs, makespan)
+        performance_list = []
+        files = request.files.getlist("performance_files")
+
+        # read workflow
+        workflow_file = request.files['workflow_file']
+        workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
+                                         werkzeug.utils.secure_filename(workflow_file.filename))
+
+        # read performance files
+        for file in files:
+            file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
+                                    werkzeug.utils.secure_filename(file.filename))
+            file_names.append(file.filename)
+            file.save(file_loc)
+
+            # calculate total cost and makespan for each performance file
+            perf = get_iaas_solution(workflow_file_loc, file_loc)
+            performance_list.append(perf)
+
+        # find index of tuple with min total_costs
+        data_min_costs = {}
+        min_total_costs = min(performance_list, key=lambda item: item[0])
+        index_min_total_costs = performance_list.index(min_total_costs)
+        file_name1 = file_names[index_min_total_costs]
+        data_min_costs['id'] = "Lowest cost"
+        data_min_costs['name'] = file_name1
+        data_min_costs['costs'] = str(min_total_costs[0])
+        data_min_costs['makespan'] = str(min_total_costs[1])
+        filtered_file_names.append(data_min_costs)
+
+        # find index tuple with min make_span
+        data_min_makespan = {}
+        min_makespan = min(performance_list, key=lambda item: item[1])
+        index_min_make_span = performance_list.index(min(performance_list, key=lambda item: item[1]))
+        file_name2 = file_names[index_min_total_costs]
+        data_min_makespan['id'] = "Lowest makespan"
+        data_min_makespan['name'] = file_name2
+        data_min_makespan['costs'] = str(min_makespan[0])
+        data_min_makespan['makespan'] = str(min_makespan[1])
+        filtered_file_names.append(data_min_makespan)
+
+        # find index tuple with min total_costs + make_span
+        data_min_combined = {}
+        min_combined = min(performance_list, key=lambda item: item[0] + item[1])
+        index_min_combined = performance_list.index(min(performance_list, key=lambda item: item[0] + item[1]))
+        file_name3 = file_names[index_min_total_costs]
+        data_min_combined['id'] = "Lowest total costs + makespan"
+        data_min_combined['name'] = file_name3
+        data_min_combined['costs'] = str(min_combined[0])
+        data_min_combined['makespan'] = str(min_combined[1])
+        filtered_file_names.append(data_min_combined)
+        return jsonify(filtered_file_names)
+
+        # tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc)
+        # return redirect(url_for('uploaded_file', filename=tosca_file_name))
+        # return "files uploaded successfully"
 
 
 # http://127.0.0.1:5000/tosca?git_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&performance_url=https://pastebin.com/raw/yhz2YsFF
 # http://127.0.0.1:5000/tosca_url?workflow_url=https://raw.githubusercontent.com/common-workflow-library/legacy/master/workflows/compile/compile1.cwl&input_url=https://pastebin.com/raw/HakSvgsA
 @app.route('/tosca_url', methods=['GET'])
 def tosca_url():
-
     # TODO: Handle wrong requests
 
     workflow_url = request.args.get('workflow_url', None)
     input_url = request.args.get('input_url', None)
 
     # set file names
-    workflow_file_location = os.path.join(app.config['UPLOAD_FOLDER'], workflow_url.split("/")[-1] + "_" + uuid.uuid4().hex)
+    workflow_file_location = os.path.join(app.config['UPLOAD_FOLDER'],
+                                          workflow_url.split("/")[-1] + "_" + uuid.uuid4().hex)
     input_file_location = os.path.join(app.config['UPLOAD_FOLDER'], "input_icpcp_" + uuid.uuid4().hex)
 
     # download files from url
@@ -184,11 +252,11 @@ def tosca_url():
 
 
 if __name__ == '__main__':
-    run_without_flask = True
+    run_without_flask = False
     if run_without_flask:
         input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
         workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
-        #runNaivePlanner(workflow_file, input_pcp)
+        # runNaivePlanner(workflow_file, input_pcp)
         get_iaas_solution(workflow_file, input_pcp)
     else:
         app.run()
