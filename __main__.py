@@ -178,7 +178,7 @@ def compare_performance():
             perf = get_iaas_solution(workflow_file_loc, file_loc)
             performance_list.append(perf)
 
-        # find index of tuple with min total_costs
+        # find tuple with min total costs and link it to corresponding file name
         data_min_costs = {}
         min_total_costs = min(performance_list, key=lambda item: item[0])
         index_min_total_costs = performance_list.index(min_total_costs)
@@ -189,7 +189,7 @@ def compare_performance():
         data_min_costs['makespan'] = str(min_total_costs[1])
         filtered_file_names.append(data_min_costs)
 
-        # find index tuple with min make_span
+        # the same as above but for makespan
         data_min_makespan = {}
         min_makespan = min(performance_list, key=lambda item: item[1])
         index_min_make_span = performance_list.index(min(performance_list, key=lambda item: item[1]))
@@ -200,7 +200,7 @@ def compare_performance():
         data_min_makespan['makespan'] = str(min_makespan[1])
         filtered_file_names.append(data_min_makespan)
 
-        # find index tuple with min total_costs + make_span
+        # the same as above but for total costs + makespan
         data_min_combined = {}
         min_combined = min(performance_list, key=lambda item: item[0] + item[1])
         index_min_combined = performance_list.index(min(performance_list, key=lambda item: item[0] + item[1]))
