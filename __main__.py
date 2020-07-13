@@ -5,11 +5,12 @@ import requests
 import werkzeug.utils
 from flask import Flask, request, send_from_directory, abort, redirect, url_for, jsonify
 from flask_cors import CORS
-
+import requests
 from legacy_code.ICPCP_TOSCA import Workflow
 from legacy_code.cwlparser import CwlParser
 from legacy_code.tosca_generator import ToscaGenerator
 import legacy_code.naive_planner as plan
+from pprint import pprint
 
 DEBUG = True
 
@@ -124,6 +125,16 @@ def run_naive_planner(workflow_file_path, input_file_path):
         for task in vm.task_list:
             print("{} -----> {}".format(vm.vm_type, task_names[task]))
 
+def request_metadata():
+    request_url = "http://localhost:8081/MasterMinded/Parsersv2/1.0.0/send_file"
+    headers = {
+        'accept': "application/json",
+        'Content-Type': "multipart/form-data"
+    }
+    workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
+
+    resp = requests.post(request_url, headers=headers, files={'file': open(workflow_file, 'rb')})
+    pprint(resp.text)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -252,11 +263,12 @@ def tosca_url():
 
 
 if __name__ == '__main__':
-    run_without_flask = False
+    run_without_flask = True
     if run_without_flask:
-        input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
-        workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
-        # runNaivePlanner(workflow_file, input_pcp)
-        get_iaas_solution(workflow_file, input_pcp)
+        # input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
+        # workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
+        # # runNaivePlanner(workflow_file, input_pcp)
+        # get_iaas_solution(workflow_file, input_pcp)
+        request_metadata()
     else:
         app.run()
