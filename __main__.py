@@ -126,14 +126,15 @@ def run_naive_planner(workflow_file_path, input_file_path):
             print("{} -----> {}".format(vm.vm_type, task_names[task]))
 
 def request_metadata():
-    request_url = "http://localhost:8081/MasterMinded/Parsersv2/1.0.0/send_file"
+    request_url = "http://localhost:5000/send_file"
     headers = {
         'accept': "application/json",
         'Content-Type': "multipart/form-data"
     }
     workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
+    files = {'file': open(workflow_file, 'rb')}
 
-    resp = requests.post(request_url, headers=headers, files={'file': open(workflow_file, 'rb')})
+    resp = requests.post(request_url, files=files)
     pprint(resp.text)
 
 @app.route('/uploads/<filename>')
