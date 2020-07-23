@@ -11,6 +11,7 @@ from legacy_code.cwlparser import CwlParser
 from legacy_code.tosca_generator import ToscaGenerator
 import legacy_code.naive_planner as plan
 from pprint import pprint
+import json
 
 DEBUG = True
 
@@ -125,17 +126,29 @@ def run_naive_planner(workflow_file_path, input_file_path):
         for task in vm.task_list:
             print("{} -----> {}".format(vm.vm_type, task_names[task]))
 
-def request_metadata():
+
+def request_metadata(endpoint_parameters=None):
+    """Request metadata from the parsers"""
     request_url = "http://localhost:5000/send_file"
     headers = {
         'accept': "application/json",
         'Content-Type': "multipart/form-data"
     }
-    workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
+    workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "align-texts-wf.cwl")
     files = {'file': open(workflow_file, 'rb')}
 
     resp = requests.post(request_url, files=files)
-    pprint(resp.text)
+    parser_data = resp.json()
+    parser_data['endpoint_parameters'] = endpoint_parameters
+    request_vm_sizes(parser_data)
+
+    # pprint(resp)
+
+def request_vm_sizes(parser_data):
+    """"""
+    request_url = "http://localhost:5001/plan"
+    resp = requests.post(request_url, json=parser_data)
+    plan_data = resp.json()
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -162,7 +175,6 @@ def upload_files():
         input_file.save(input_file_loc)
         tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
         return redirect(url_for('uploaded_file', filename=tosca_file_name))
-        return "files uploaded successfully"
 
 
 @app.route('/optimizer', methods=['POST'])
