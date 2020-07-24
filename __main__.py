@@ -5,6 +5,7 @@ import requests
 import werkzeug.utils
 from flask import Flask, request, send_from_directory, abort, redirect, url_for, jsonify
 from flask_cors import CORS
+import yaml
 import requests
 from legacy_code.ICPCP_TOSCA import Workflow
 from legacy_code.cwlparser import CwlParser
@@ -127,20 +128,21 @@ def run_naive_planner(workflow_file_path, input_file_path):
             print("{} -----> {}".format(vm.vm_type, task_names[task]))
 
 
-def request_metadata(endpoint_parameters=None):
+def request_metadata(workflow_file=None):
     """Request metadata from the parsers"""
-    request_url = "http://localhost:5000/send_file"
+    request_url = "http://localhost:5002/send_file"
     headers = {
         'accept': "application/json",
         'Content-Type': "multipart/form-data"
     }
-    workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "align-texts-wf.cwl")
+    if workflow_file is None:
+        workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "align-texts-wf.cwl")
     files = {'file': open(workflow_file, 'rb')}
 
     resp = requests.post(request_url, files=files)
     parser_data = resp.json()
-    parser_data['endpoint_parameters'] = endpoint_parameters
-    request_vm_sizes(parser_data)
+    return parser_data
+
 
     # pprint(resp)
 
@@ -165,14 +167,32 @@ def upload_files():
         # if 'file' not in request.files:
         #     flash('No file present')
         #     return redirect(request.url)
-
+        micro_service = True
         workflow_file = request.files['workflow_file']
         input_file = request.files['input_file']
+
+
         workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
                                          werkzeug.utils.secure_filename(workflow_file.filename))
         input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename))
         workflow_file.save(workflow_file_loc)
         input_file.save(input_file_loc)
+
+        #non microservice based
+        if(micro_service):
+            with open(input_file_loc, 'r') as stream:
+                data_loaded = yaml.safe_load(stream)
+                price = data_loaded[0]["price"]
+                deadline = data_loaded[2]["deadline"]
+                performance_with_vm = data_loaded[1]["performance"]
+                performance = []
+                for key, value in performance_with_vm.items():
+                    performance.append(value)
+            icpcp_parameters = {'price': price, 'performance': performance, 'deadline': deadline}
+            parser_data = request_metadata(workflow_file_loc)
+            parser_data['icpcp_params'] = icpcp_parameters
+            request_vm_sizes(parser_data)
+
         tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
         return redirect(url_for('uploaded_file', filename=tosca_file_name))
 
@@ -276,7 +296,7 @@ def tosca_url():
 
 
 if __name__ == '__main__':
-    run_without_flask = True
+    run_without_flask = False
     if run_without_flask:
         # input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
         # workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
