@@ -11,6 +11,7 @@ from legacy_code.ICPCP_TOSCA import Workflow
 from legacy_code.cwlparser import CwlParser
 from legacy_code.tosca_generator import ToscaGenerator
 import legacy_code.naive_planner as plan
+from legacy_code.NewInstance import NewInstance
 from pprint import pprint
 import json
 
@@ -43,8 +44,8 @@ def run_icpc(dag=None, combined_input=None):
     print("\nEnd situation")
     wf.printGraphTimes()
 
-    # entry and exit node not part of PCP, so
-    # adjust LST, LFT of entry node
+    # vm and exit node not part of PCP, so
+    # adjust LST, LFT of vm node
     # adjust EST, EFT of exit node
     wf.update_node(0)
     wf.update_node(wf.number_of_nodes() - 1)
@@ -173,9 +174,8 @@ def uploaded_file(filename):
 def upload_files():
     if request.method == 'POST':
         # if 'file' not in request.files:
-        #     flash('No file present')
         #     return redirect(request.url)
-        micro_service = False
+        micro_service = True
         workflow_file = request.files['workflow_file']
         input_file = request.files['input_file']
 
@@ -200,7 +200,20 @@ def upload_files():
             parser_data = request_metadata(workflow_file_loc)
             parser_data['icpcp_params'] = icpcp_parameters
             vm_data = request_vm_sizes(parser_data)
-            print(vm_data)
+            servers = []
+            for vm in vm_data:
+                tasks = vm['tasks']
+                vm_start = vm['vm_start']
+                vm_end = vm['vm_end']
+                properties = {'num_cpus' : vm['num_cpus'], 'disk_size' : vm['disk_size'], 'mem_size' : vm['mem_size']}
+                server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                server.properties = properties
+                server.task_names = tasks
+                servers.append(server)
+
+            tosca_file = generate_tosca(servers, microservices=True)
+            return redirect(url_for('uploaded_file', filename=tosca_file))
+
         #non microservice based
         else:
             tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
