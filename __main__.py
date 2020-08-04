@@ -136,11 +136,12 @@ def request_metadata(workflow_file=None):
         'Content-Type': "multipart/form-data"
     }
     if workflow_file is None:
-        workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "align-texts-wf.cwl")
+        workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
     files = {'file': open(workflow_file, 'rb')}
 
     resp = requests.post(request_url, files=files)
     parser_data = resp.json()
+    #request_vm_sizes(parser_data)
     return parser_data
 
 
@@ -178,7 +179,7 @@ def upload_files():
         workflow_file.save(workflow_file_loc)
         input_file.save(input_file_loc)
 
-        #non microservice based
+        #microservice based
         if(micro_service):
             with open(input_file_loc, 'r') as stream:
                 data_loaded = yaml.safe_load(stream)
@@ -193,8 +194,10 @@ def upload_files():
             parser_data['icpcp_params'] = icpcp_parameters
             request_vm_sizes(parser_data)
 
-        tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
-        return redirect(url_for('uploaded_file', filename=tosca_file_name))
+        #non microservice based
+        else:
+            tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
+            return redirect(url_for('uploaded_file', filename=tosca_file_name))
 
 
 @app.route('/optimizer', methods=['POST'])

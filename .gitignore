@@ -109,7 +109,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+planning_input
+planning_output
 # Spyder project settings
 .spyderproject
 .spyproject
