@@ -81,42 +81,48 @@ def get_file_from_url(url, file_name):
         out_file.write(response.content)
 
 
-def get_iaas_solution(workflow_file_path, input_file_path, save=None):
+def get_iaas_solution(workflow_file_path, input_file_path, save=None, microservices=False):
     # Run cwl parser
     cwl_parser = CwlParser(workflow_file_path)
     dag = cwl_parser.g
-    # print(dag.nodes())
-    # print(dag.edges())
 
-    # Load tosca generator
-    tosca_gen = ToscaGenerator()
-    tosca_gen.load_default_template()
 
     # Run IC-PCP algorithm
     servers = run_icpc(dag, input_file_path)
+
     total_cost = 0
     make_span = 0
-    # Add needed instances to tosca description
-    for i in range(0, len(servers)):
-        make_span += servers[i].get_duration()
-        total_cost += servers[i].get_cost()
-        instance = servers[i]
-        x = {'num_cpus': i + 1, 'disk_size': "{} GB".format((i + 1) * 10),
-             'mem_size': "{} MB".format(int((i + 1) * 4096))}
-        instance.properties = x
-        tosca_gen.add_compute_node("server {}".format(i + 1), instance)
-        print(servers[i].properties)
-
-    print("Total costs = {}".format(total_cost))
-    print("Makespan = {}".format(make_span))
 
     if save == None:
+        for i in range(0, len(servers)):
+            make_span += servers[i].get_duration()
+            total_cost += servers[i].get_cost()
+
+        print("Total costs = {}".format(total_cost))
+        print("Makespan = {}".format(make_span))
         return total_cost, make_span
+
+    return generate_tosca(servers)
+
+
+def generate_tosca(servers, microservices=False):
+    #Load tosca geneartor
+    tosca_gen = ToscaGenerator()
+    tosca_gen.load_default_template()
+
+    for i in range(0, len(servers)):
+        instance = servers[i]
+        if not microservices:
+            x = {'num_cpus': i + 1, 'disk_size': "{} GB".format((i + 1) * 10),
+                 'mem_size': "{} MB".format(int((i + 1) * 4096))}
+            instance.properties = x
+        tosca_gen.add_compute_node("server {}".format(i + 1), instance)
+
     tosca_file_name = "generated_tosca_description_" + uuid.uuid4().hex
     tosca_file_loc = os.path.join(app.config['DOWNLOAD_FOLDER'], tosca_file_name)
     tosca_gen.write_template_to_file(tosca_file_loc)
     return tosca_file_name
-
+    print(servers[i].properties)
 
 def run_naive_planner(workflow_file_path, input_file_path):
     cwl_parser = CwlParser(workflow_file_path)
@@ -152,6 +158,7 @@ def request_vm_sizes(parser_data):
     request_url = "http://localhost:5001/plan"
     resp = requests.post(request_url, json=parser_data)
     plan_data = resp.json()
+    return plan_data
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -168,7 +175,7 @@ def upload_files():
         # if 'file' not in request.files:
         #     flash('No file present')
         #     return redirect(request.url)
-        micro_service = True
+        micro_service = False
         workflow_file = request.files['workflow_file']
         input_file = request.files['input_file']
 
@@ -192,8 +199,8 @@ def upload_files():
             icpcp_parameters = {'price': price, 'performance': performance, 'deadline': deadline}
             parser_data = request_metadata(workflow_file_loc)
             parser_data['icpcp_params'] = icpcp_parameters
-            request_vm_sizes(parser_data)
-
+            vm_data = request_vm_sizes(parser_data)
+            print(vm_data)
         #non microservice based
         else:
             tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
