@@ -135,27 +135,25 @@ def run_naive_planner(workflow_file_path, input_file_path):
             print("{} -----> {}".format(vm.vm_type, task_names[task]))
 
 
+
+
 def request_metadata(workflow_file=None):
     """Request metadata from the parsers"""
     request_url = "http://localhost:5002/send_file"
-    headers = {
-        'accept': "application/json",
-        'Content-Type': "multipart/form-data"
-    }
+
     if workflow_file is None:
         workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
     files = {'file': open(workflow_file, 'rb')}
 
     resp = requests.post(request_url, files=files)
     parser_data = resp.json()
-    #request_vm_sizes(parser_data)
     return parser_data
 
 
     # pprint(resp)
 
 def request_vm_sizes(parser_data):
-    """"""
+    """"Request vm sizes from planner"""
     request_url = "http://localhost:5001/plan"
     resp = requests.post(request_url, json=parser_data)
     plan_data = resp.json()
