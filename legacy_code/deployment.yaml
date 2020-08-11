@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cwl-parser
+spec:
+  selector:
+    matchLabels:
+      app: cwl-parser
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: cwl-parser
+    spec:
+      containers:
+      - name: cwl-parser
+        image: cwl_parser:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5002
