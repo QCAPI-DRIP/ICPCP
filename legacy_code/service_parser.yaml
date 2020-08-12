@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cwl-parser-service
+spec:
+  selector:
+    app: cwl-parser
+  ports:
+  - protocol: "TCP"
+    port: 3002
+    targetPort: 5002
+  type: LoadBalancer
