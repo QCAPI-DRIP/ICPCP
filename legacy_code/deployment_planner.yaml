@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: icpcp-planner
+spec:
+  selector:
+    matchLabels:
+      app: icpcp-planner
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: icpcp-planner
+    spec:
+      containers:
+      - name: icpcp-planner
+        image: icpcp_planner:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5001
