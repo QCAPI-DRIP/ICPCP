@@ -19,14 +19,21 @@ class EndPointRegistry:
         cluster_ip = kub_create.create_service(name, container_port)
         kub_create.create_deployment(name, image_repo, container_port)
         self._parsers[file_format] = [cluster_ip]
+        return True
 
 
-    def add_planner_endpoint(self, name: str, endpoint_url: str, planner_params: list):
+    def add_planner_endpoint(self, name: str, image_repo: str, container_port: int, planner_params: list):
         """Use this function to add a planner endpoint to endpoint registry.
         Example endpoint_url: "http://localhost:5002/send_file"
         planner_params: [price, performance, deadline]
         """
+        # if name in self._planners:
+        #     raise Exception('This name is already present in the planners.')
+
+        # add endpoint to kubernetes
+        cluster_ip = kub_create.create_service(name, container_port)
+        kub_create.create_deployment(name, image_repo, container_port)
         if name in self._planners:
             raise Exception('This name is already present in the planners.')
-
-        self._planners[name] = (endpoint_url, planner_params)
+        self._planneres[name] = cluster_ip
+        return True
