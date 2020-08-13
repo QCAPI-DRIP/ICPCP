@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: cwl-parser
-        image: cwl_parser:latest
-        imagePullPolicy: Never
+        image: masterminded/cwl-parser:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5002

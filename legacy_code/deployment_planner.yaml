@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: icpcp-planner
-        image: icpcp_planner:latest
-        imagePullPolicy: Never
+        image: masterminded/icpcp-planner:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5001
