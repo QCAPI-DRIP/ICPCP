@@ -1,8 +1,9 @@
 from kubernetes import client, config
 
+config.load_kube_config()
+
 def create_deployment(name, image_repo, container_port):
     # Fetching and loading local Kubernetes Information
-    config.load_kube_config()
     apps_v1_api = client.AppsV1Api()
 
     container = client.V1Container(
@@ -49,8 +50,10 @@ def create_service(name, container_port):
     )
     # Creation of the Deployment in specified namespace
     # (Can replace "default" with a namespace you may have created)
-    core_v1_api.create_namespaced_service(namespace="default", body=body)
-
+    data = core_v1_api.create_namespaced_service(namespace="default", body=body)
+    cluster_ip = data.spec['cluster_ip']
+    return cluster_ip
+    print(data)
 
 def list_pods():
     v1 = client.CoreV1Api()
@@ -60,13 +63,7 @@ def list_pods():
         print("%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
 
 def main():
-    # Fetching and loading local Kubernetes Information
-    config.load_kube_config()
-    apps_v1_api = client.AppsV1Api()
-    networking_v1_beta1_api = client.NetworkingV1beta1Api()
-
-    create_service()
-    create_deployment(apps_v1_api)
+    create_service("test", 5000)
     list_pods()
 
 if __name__ == "__main__":
