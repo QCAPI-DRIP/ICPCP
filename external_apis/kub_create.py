@@ -1,6 +1,8 @@
 from kubernetes import client, config
+import os
 
-config.load_kube_config()
+KUBE_CONFIG__LOCATION = os.path.join(os.getcwd(), 'config', 'config')
+config.load_kube_config(KUBE_CONFIG__LOCATION)
 
 def create_deployment(name, image_repo, container_port):
     # Fetching and loading local Kubernetes Information
@@ -67,4 +69,7 @@ def main():
     list_pods()
 
 if __name__ == "__main__":
-    main()
+    # KUBE_CONFIG__LOCATION = os.path.join(os.getcwd(), 'config', 'config')
+    # print(KUBE_CONFIG__LOCATION)
+    list_pods()
+    #main()
