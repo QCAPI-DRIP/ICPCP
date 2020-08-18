@@ -7,6 +7,6 @@ spec:
     app: frontend
   ports:
   - protocol: "TCP"
-    port: 3003
-    targetPort: 5003
+    port: 80
+    targetPort: 8080
   type: LoadBalancer

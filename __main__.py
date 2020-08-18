@@ -12,8 +12,7 @@ from legacy_code.cwlparser import CwlParser
 from legacy_code.tosca_generator import ToscaGenerator
 import legacy_code.naive_planner as plan
 from legacy_code.NewInstance import NewInstance
-from components.endpoint_registry import EndPointRegistry
-from pprint import pprint
+#from components.endpoint_registry import EndPointRegistry
 import json
 
 DEBUG = True
@@ -141,7 +140,7 @@ def run_naive_planner(workflow_file_path, input_file_path):
 def request_metadata(workflow_file=None):
     """Request metadata from the parsers"""
     # request_url = "http://localhost:3002/send_file"
-    request_url = "http:/10.0.36.158:3002/send_file"
+    request_url = "cwl-parser-service/send_file"
     if workflow_file is None:
         workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
     files = {'file': open(workflow_file, 'rb')}
@@ -156,7 +155,7 @@ def request_metadata(workflow_file=None):
 def request_vm_sizes(parser_data):
     """"Request vm sizes from planner"""
     # request_url = "http://localhost:3001/plan"
-    request_url = "http://10.0.94.145:3001/plan"
+    request_url = "icpcp-planner-service/plan"
     resp = requests.post(request_url, json=parser_data)
     plan_data = resp.json()
     return plan_data
