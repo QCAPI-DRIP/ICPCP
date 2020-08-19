@@ -152,6 +152,13 @@ def request_metadata(workflow_file=None):
 
     # pprint(resp)
 
+def test_cluster():
+    request_url = "http://52.186.166.180:3000/upload"
+    workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
+    files = {'file': open(workflow_file, 'rb')}
+
+    resp = requests.post(request_url, files=files)
+
 def request_vm_sizes(parser_data):
     """"Request vm sizes from planner"""
     request_url = "http://icpcp-planner-service.default:30392/plan"
@@ -326,4 +333,5 @@ if __name__ == '__main__':
         # get_iaas_solution(workflow_file, input_pcp)
         request_metadata()
     else:
-        app.run()
+        # test_cluster()
+        app.run(port=80)
