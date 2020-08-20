@@ -3,6 +3,7 @@ import kubernetes.config as config
 import kubernetes.client as client
 from os import path
 import yaml
+import requests
 
 config.load_kube_config()
 
@@ -49,5 +50,6 @@ def create_deployment():
 
 
 if __name__ == '__main__':
-    create_deployment()
-    list_pods()
+    requests.get("http://52.188.135.248//:80")
+    # create_deployment()
+    # list_pods()

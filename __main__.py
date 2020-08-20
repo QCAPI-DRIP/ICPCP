@@ -153,7 +153,8 @@ def request_metadata(workflow_file=None):
     # pprint(resp)
 
 def test_cluster():
-    request_url = "http://52.186.166.180:3000/upload"
+    #request_url = "http://52.147.220.82:80/upload"
+    request_url = "http://52.188.135.248:80/send_file"
     workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
     files = {'file': open(workflow_file, 'rb')}
 
@@ -333,5 +334,6 @@ if __name__ == '__main__':
         # get_iaas_solution(workflow_file, input_pcp)
         request_metadata()
     else:
-        # test_cluster()
-        app.run(port=80)
+        app.run(host="localhost", port=8080)
+        #test_cluster()
+
