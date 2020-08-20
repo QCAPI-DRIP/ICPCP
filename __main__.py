@@ -334,6 +334,7 @@ if __name__ == '__main__':
         # get_iaas_solution(workflow_file, input_pcp)
         request_metadata()
     else:
-        app.run(port=5001)
+        port = int(os.environ.get('PORT', 5001))
+        app.run(host='0.0.0.0', port=port, debug=False)
         #test_cluster()
 

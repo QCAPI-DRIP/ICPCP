@@ -50,6 +50,6 @@ def create_deployment():
 
 
 if __name__ == '__main__':
-    requests.get("http://localhost:5001")
+    requests.get("http://52.226.51.113:3001")
     # create_deployment()
     # list_pods()
