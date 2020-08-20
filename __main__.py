@@ -163,7 +163,7 @@ def test_cluster():
 def request_vm_sizes(parser_data):
     """"Request vm sizes from planner"""
     #request_url = "http://icpcp-planner-service.default:30392/plan"
-    request_url = "10.0.114.202:5002/plan"
+    request_url = "http://10.0.114.202:5002/plan"
     resp = requests.post(request_url, json=parser_data)
     plan_data = resp.json()
     return plan_data
