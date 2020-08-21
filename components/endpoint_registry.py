@@ -1,5 +1,9 @@
 import external_apis.kub_create as kub_create
+import io
+import yaml
+import os
 
+SAFE_LOCATION_ENDPOINTS = os.getcwd()
 class EndPointRegistry:
 
     def __init__(self):
@@ -10,8 +14,6 @@ class EndPointRegistry:
 
     def add_parser_endpoint(self, name: str, image_repo: str, container_port: int, file_format: str):
         """Use this function to add a parser endpoint to endpoint registry.
-        Example endpoint_url: "http://localhost:5002/send_file"
-        file_format: ".cwl"
         """
 
         #TODO: Add check for available ports
@@ -19,6 +21,7 @@ class EndPointRegistry:
         cluster_ip = kub_create.create_service(name, container_port)
         kub_create.create_deployment(name, image_repo, container_port)
         self._parsers[file_format] = [cluster_ip]
+
         return True
 
 
@@ -37,3 +40,16 @@ class EndPointRegistry:
             raise Exception('This name is already present in the planners.')
         self._planneres[name] = cluster_ip
         return True
+
+    def safe_endpoints(self):
+        """Write endpoints to yaml file such that they can be used by the backend"""
+        with io.open('parsers.yaml', 'w', encoding='utf8') as outfile:
+            yaml.dump(self._parsers, outfile, default_flow_style=False, allow_unicode=True)
+
+        with io.open('planners.yaml', 'w', encoding='utf8') as outfile:
+            yaml.dump(self.planners, outfile, default_flow_style=False, allow_unicode=True)
+
+
+if __name__ == '__main__':
+    BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
+    print(BASE_DIR)
