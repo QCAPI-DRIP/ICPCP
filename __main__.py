@@ -138,10 +138,11 @@ def run_naive_planner(workflow_file_path, input_file_path):
 
 
 
-def request_metadata(workflow_file=None):
+def request_metadata(endpoint, port, workflow_file=None):
     """Request metadata from the parsers"""
-    request_url = "http://10.0.125.227:5003/send_file"
-    #request_url = "http://cwl-parser-service.default:32401/send_file"
+    request_url = "http://{endpoint}:{port}/send_file".format(endpoint=endpoint, port=port)
+    # request_url = "http://10.0.125.227:5003/send_file"
+    # request_url = "http://cwl-parser-service.default:32401/send_file"
     if workflow_file is None:
         workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
     files = {'file': open(workflow_file, 'rb')}
@@ -161,10 +162,11 @@ def test_cluster():
 
     resp = requests.post(request_url, files=files)
 
-def request_vm_sizes(parser_data):
+def request_vm_sizes(endpoint, port, parser_data):
     """"Request vm sizes from planner"""
+    request_url = request_url = "http://{endpoint}:{port}/plan".format(endpoints=endpoint, port=port)
     #request_url = "http://icpcp-planner-service.default:30392/plan"
-    request_url = "http://10.0.114.202:5002/plan"
+    # request_url = "http://10.0.114.202:5002/plan"
     resp = requests.post(request_url, json=parser_data)
     plan_data = resp.json()
     return plan_data
@@ -184,6 +186,7 @@ def upload_files():
         # if 'file' not in request.files:
         #     return redirect(request.url)
         micro_service = True
+        added_endpoints = False
         workflow_file = request.files['workflow_file']
         input_file = request.files['input_file']
 
@@ -195,7 +198,7 @@ def upload_files():
         input_file.save(input_file_loc)
 
         #microservice based
-        if(micro_service):
+        if micro_service:
             with open(input_file_loc, 'r') as stream:
                 data_loaded = yaml.safe_load(stream)
                 price = data_loaded[0]["price"]
@@ -204,41 +207,70 @@ def upload_files():
                 performance = []
                 for key, value in performance_with_vm.items():
                     performance.append(value)
+
             icpcp_parameters = {'price': price, 'performance': performance, 'deadline': deadline}
 
-            #send requests to available microservices
-            parsers_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
-            planners_file_loc = os.path.join(ENDPOINTS_PATH, 'planners.yaml')
-
-            with open(parsers_file_loc, 'r') as stream:
-                try:
-                    parsers_data = yaml.safe_load(stream)
-                except yaml.YAMLError as exc:
-                    print(exc)
-
-            with open(planners_file_loc, 'r') as stream:
-                try:
-                    planners_data = yaml.safe_load(stream)
-                except yaml.YAMLError as exc:
-                    print(exc)
-
-            parser_data = request_metadata(workflow_file_loc)
+            parser_data = request_metadata("10.0.125.227", "5003", workflow_file_loc)
             parser_data['icpcp_params'] = icpcp_parameters
-            vm_data = request_vm_sizes(parser_data)
 
-
+            vm_data = request_vm_sizes("10.0.114.202", "5002", parser_data)
             servers = []
             for vm in vm_data:
                 tasks = vm['tasks']
                 vm_start = vm['vm_start']
                 vm_end = vm['vm_end']
-                properties = {'num_cpus' : vm['num_cpus'], 'disk_size' : vm['disk_size'], 'mem_size' : vm['mem_size']}
+                properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
                 server = NewInstance(0, 0, vm_start, vm_end, tasks)
                 server.properties = properties
                 server.task_names = tasks
                 servers.append(server)
+                tosca_file = generate_tosca(servers, microservices=True)
 
-            tosca_file = generate_tosca(servers, microservices=True)
+            if added_endpoints:
+                #find out what microservices are available
+                parsers_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
+                planners_file_loc = os.path.join(ENDPOINTS_PATH, 'planners.yaml')
+
+                with open(parsers_file_loc, 'r') as stream:
+                    try:
+                        parsers_data = yaml.safe_load(stream)
+                    except yaml.YAMLError as exc:
+                        print(exc)
+
+                with open(planners_file_loc, 'r') as stream:
+                    try:
+                        planners_data = yaml.safe_load(stream)
+                    except yaml.YAMLError as exc:
+                        print(exc)
+
+
+                parser_endpoints = parsers_data['.cwl']
+                planner_endpoints = list(planners_data.keys())
+
+                # list of generated tosca files
+                tosca_files = []
+
+                #send workflow file to each available parser that supports its format
+                for (endpoint, port) in parser_endpoints:
+                    parser_data = request_metadata(endpoint, port, workflow_file_loc)
+                    parser_data['icpcp_params'] = icpcp_parameters
+
+                    #send the parser output to each available planner
+                    for (endpoint_planner, port_planner) in planner_endpoints:
+                        vm_data = request_vm_sizes(endpoint_planner, port_planner, parser_data)
+                        servers = []
+                        for vm in vm_data:
+                            tasks = vm['tasks']
+                            vm_start = vm['vm_start']
+                            vm_end = vm['vm_end']
+                            properties = {'num_cpus' : vm['num_cpus'], 'disk_size' : vm['disk_size'], 'mem_size' : vm['mem_size']}
+                            server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                            server.properties = properties
+                            server.task_names = tasks
+                            servers.append(server)
+                            tosca_file = generate_tosca(servers, microservices=True)
+                            tosca_files.append(tosca_file)
+
             return redirect(url_for('uploaded_file', filename=tosca_file))
 
         #non microservice based
