@@ -46,14 +46,14 @@ class EndPointRegistry:
 
     def safe_endpoints(self):
         """Write endpoints to yaml file such that they can be used by the backend"""
-        parser_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
-        planner_file_loc = os.path.join(ENDPOINTS_PATH, 'planners.yaml')
+        parsers_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
+        planners_file_loc = os.path.join(ENDPOINTS_PATH, 'planners.yaml')
         if self._parsers:
-            with open(parser_file_loc, 'w', encoding='utf8') as outfile:
+            with open(parsers_file_loc, 'w', encoding='utf8') as outfile:
                 yaml.dump(self._parsers, outfile, default_flow_style=False, allow_unicode=True)
 
         if self._planners:
-            with open(planner_file_loc, 'w', encoding='utf8') as outfile:
+            with open(planners_file_loc, 'w', encoding='utf8') as outfile:
                 yaml.dump(self._planners, outfile, default_flow_style=False, allow_unicode=True)
 
 

@@ -12,6 +12,7 @@ from legacy_code.cwlparser import CwlParser
 from legacy_code.tosca_generator import ToscaGenerator
 import legacy_code.naive_planner as plan
 from legacy_code.NewInstance import NewInstance
+from definitions import ENDPOINTS_PATH
 #from components.endpoint_registry import EndPointRegistry
 import json
 
@@ -204,9 +205,28 @@ def upload_files():
                 for key, value in performance_with_vm.items():
                     performance.append(value)
             icpcp_parameters = {'price': price, 'performance': performance, 'deadline': deadline}
+
+            #send requests to available microservices
+            parsers_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
+            planners_file_loc = os.path.join(ENDPOINTS_PATH, 'planners.yaml')
+
+            with open(parsers_file_loc, 'r') as stream:
+                try:
+                    parsers_data = yaml.safe_load(stream)
+                except yaml.YAMLError as exc:
+                    print(exc)
+
+            with open(planners_file_loc, 'r') as stream:
+                try:
+                    planners_data = yaml.safe_load(stream)
+                except yaml.YAMLError as exc:
+                    print(exc)
+
             parser_data = request_metadata(workflow_file_loc)
             parser_data['icpcp_params'] = icpcp_parameters
             vm_data = request_vm_sizes(parser_data)
+
+
             servers = []
             for vm in vm_data:
                 tasks = vm['tasks']
