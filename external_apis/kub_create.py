@@ -1,38 +1,42 @@
 from kubernetes import client, config
 import os
-
-KUBE_CONFIG__LOCATION = os.path.join(os.getcwd(), 'config', 'config')
-config.load_kube_config(KUBE_CONFIG__LOCATION)
+from definitions import K8_CONFIG_PATH
+# KUBE_CONFIG__LOCATION = os.path.join(os.getcwd(), 'config', 'config')
+config.load_kube_config(K8_CONFIG_PATH)
 
 def create_deployment(name, image_repo, container_port):
     # Fetching and loading local Kubernetes Information
     apps_v1_api = client.AppsV1Api()
 
+    # Configureate Pod template container
     container = client.V1Container(
         name=name,
         image=image_repo,
-        image_pull_policy="Always",
         ports=[client.V1ContainerPort(container_port=container_port)],
+        # resources=client.V1ResourceRequirements(
+        #     requests={"cpu": "100m", "memory": "200Mi"},
+        #     limits={"cpu": "500m", "memory": "500Mi"}
+        # )
     )
-    # Template
+    # Create and configurate a spec section
     template = client.V1PodTemplateSpec(
-        metadata=client.V1ObjectMeta(labels={"app": "deployment"}),
+        metadata=client.V1ObjectMeta(labels={"app": name}),
         spec=client.V1PodSpec(containers=[container]))
-    # Spec
+    # Create the specification of deployment
     spec = client.V1DeploymentSpec(
-        replicas=2,
-        template=template)
-    # Deployment
+        replicas=3,
+        template=template,
+        selector={'matchLabels': {'app': name}})
+    # Instantiate the deployment object
     deployment = client.V1Deployment(
         api_version="apps/v1",
         kind="Deployment",
-        metadata=client.V1ObjectMeta(name="deployment"),
+        metadata=client.V1ObjectMeta(name=name),
         spec=spec)
-    # Creation of the Deployment in specified namespace
-    # (Can replace "default" with a namespace you may have created)
+
     apps_v1_api.create_namespaced_deployment(
-        namespace="default", body=deployment
-    )
+            namespace="default", body=deployment
+        )
 
 def create_service(name, container_port):
     core_v1_api = client.CoreV1Api()
@@ -47,15 +51,15 @@ def create_service(name, container_port):
             ports=[client.V1ServicePort(
                 port=3001,
                 target_port=container_port
-            )]
+            )],
+            type="LoadBalancer"
         )
     )
     # Creation of the Deployment in specified namespace
     # (Can replace "default" with a namespace you may have created)
     data = core_v1_api.create_namespaced_service(namespace="default", body=body)
-    cluster_ip = data.spec['cluster_ip']
+    cluster_ip = data.spec.cluster_ip
     return cluster_ip
-    print(data)
 
 def list_pods():
     v1 = client.CoreV1Api()
