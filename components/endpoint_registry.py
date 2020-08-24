@@ -22,7 +22,7 @@ class EndPointRegistry:
         #add endpoint to kubernetes
         cluster_ip = kub_create.create_service(name, container_port)
         kub_create.create_deployment(name, image_repo, container_port)
-        self._parsers[file_format] = [cluster_ip]
+        self._parsers[file_format] = [(cluster_ip, container_port)]
 
         return True
 
@@ -41,7 +41,7 @@ class EndPointRegistry:
         cluster_ip = kub_create.create_service(name, container_port)
         kub_create.create_deployment(name, image_repo, container_port)
 
-        self._planners[cluster_ip] = planner_params
+        self._planners[(cluster_ip, container_port)] = planner_params
         return True
 
     def safe_endpoints(self):
