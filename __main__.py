@@ -154,17 +154,13 @@ def request_metadata(endpoint, port, workflow_file=None):
 
     # pprint(resp)
 
-def test_cluster():
-    #request_url = "http://52.147.220.82:80/upload"
-    request_url = "http://52.188.135.248:80/send_file"
-    workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
-    files = {'file': open(workflow_file, 'rb')}
 
-    resp = requests.post(request_url, files=files)
+
+
 
 def request_vm_sizes(endpoint, port, parser_data):
     """"Request vm sizes from planner"""
-    request_url = request_url = "http://{endpoint}:{port}/plan".format(endpoints=endpoint, port=port)
+    request_url = "http://{endpoint}:{port}/plan".format(endpoint=endpoint, port=port)
     #request_url = "http://icpcp-planner-service.default:30392/plan"
     # request_url = "http://10.0.114.202:5002/plan"
     resp = requests.post(request_url, json=parser_data)
@@ -210,22 +206,7 @@ def upload_files():
 
             icpcp_parameters = {'price': price, 'performance': performance, 'deadline': deadline}
 
-            parser_data = request_metadata("10.0.125.227", "5003", workflow_file_loc)
-            parser_data['icpcp_params'] = icpcp_parameters
-
-            vm_data = request_vm_sizes("10.0.114.202", "5002", parser_data)
-            servers = []
-            for vm in vm_data:
-                tasks = vm['tasks']
-                vm_start = vm['vm_start']
-                vm_end = vm['vm_end']
-                properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
-                server = NewInstance(0, 0, vm_start, vm_end, tasks)
-                server.properties = properties
-                server.task_names = tasks
-                servers.append(server)
-                tosca_file = generate_tosca(servers, microservices=True)
-
+            #search for available endpoints
             if added_endpoints:
                 #find out what microservices are available
                 parsers_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
@@ -270,6 +251,22 @@ def upload_files():
                             servers.append(server)
                             tosca_file = generate_tosca(servers, microservices=True)
                             tosca_files.append(tosca_file)
+            else:
+                parser_data = request_metadata("localhost", "5003", workflow_file_loc)
+                parser_data['icpcp_params'] = icpcp_parameters
+
+                vm_data = request_vm_sizes("localhost", "5002", parser_data)
+                servers = []
+                for vm in vm_data:
+                    tasks = vm['tasks']
+                    vm_start = vm['vm_start']
+                    vm_end = vm['vm_end']
+                    properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
+                    server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                    server.properties = properties
+                    server.task_names = tasks
+                    servers.append(server)
+                    tosca_file = generate_tosca(servers, microservices=True)
 
             return redirect(url_for('uploaded_file', filename=tosca_file))
 
