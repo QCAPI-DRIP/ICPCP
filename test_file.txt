@@ -1,0 +1,3 @@
+teset1 number of requests ---> 8.16205358505249s response time 
+1 number of requests ---> 8.182072162628174s response time 
+2 number of requests ---> 16.315440893173218s response time 
