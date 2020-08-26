@@ -186,6 +186,11 @@ def upload_files():
         workflow_file = request.files['workflow_file']
         input_file = request.files['input_file']
 
+        #configure this if you dont want to use endpoints from endpointregistry
+        fixed_endpoint_parser_ip = "10.0.125.227"
+        fixed_endpoint_parser_port = "5003"
+        fixed_endpoint_planner_ip = "10.0.114.202"
+        fixed_endpoint_planner_port = "5002"
 
         workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
                                          werkzeug.utils.secure_filename(workflow_file.filename))
@@ -252,10 +257,10 @@ def upload_files():
                             tosca_file = generate_tosca(servers, microservices=True)
                             tosca_files.append(tosca_file)
             else:
-                parser_data = request_metadata("localhost", "5003", workflow_file_loc)
+                parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
                 parser_data['icpcp_params'] = icpcp_parameters
 
-                vm_data = request_vm_sizes("localhost", "5002", parser_data)
+                vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
                 servers = []
                 for vm in vm_data:
                     tasks = vm['tasks']
