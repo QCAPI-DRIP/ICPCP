@@ -181,7 +181,7 @@ def upload_files():
     if request.method == 'POST':
         # if 'file' not in request.files:
         #     return redirect(request.url)
-        micro_service = True
+        micro_service = False
         added_endpoints = False
         workflow_file = request.files['workflow_file']
         input_file = request.files['input_file']
