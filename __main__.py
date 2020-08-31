@@ -16,8 +16,10 @@ from definitions import ENDPOINTS_PATH
 #from components.endpoint_registry import EndPointRegistry
 import json
 
-DEBUG = True
+#set to true for microservice based architecture
+MICRO_SERVICE = True
 
+DEBUG = True
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), "planning_input")
@@ -175,13 +177,15 @@ def uploaded_file(filename):
     except FileNotFoundError:
         abort(404)
 
+@app.route('/architecture')
+def get_architecture():
+    return json.dumps(MICRO_SERVICE)
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
     if request.method == 'POST':
         # if 'file' not in request.files:
         #     return redirect(request.url)
-        micro_service = False
         added_endpoints = False
         workflow_file = request.files['workflow_file']
         input_file = request.files['input_file']
@@ -199,7 +203,7 @@ def upload_files():
         input_file.save(input_file_loc)
 
         #microservice based
-        if micro_service:
+        if MICRO_SERVICE:
             with open(input_file_loc, 'r') as stream:
                 data_loaded = yaml.safe_load(stream)
                 price = data_loaded[0]["price"]
