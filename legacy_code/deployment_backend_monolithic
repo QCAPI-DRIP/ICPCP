@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: masterminded/backend:latest
+        image: masterminded/backend_monolithic:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 5001

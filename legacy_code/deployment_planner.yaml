@@ -17,4 +17,4 @@ spec:
         image: masterminded/icpcp-planner:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 5001
+        - containerPort: 5002

@@ -17,4 +17,4 @@ spec:
         image: masterminded/cwl-parser:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 5002
+        - containerPort: 5003
