@@ -384,13 +384,13 @@ def tosca_url():
 
 
 if __name__ == '__main__':
-    run_without_flask = False
+    run_without_flask = True
     if run_without_flask:
-        # input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
-        # workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
+        input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
+        workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "lobSTR.cwl")
         # # runNaivePlanner(workflow_file, input_pcp)
-        # get_iaas_solution(workflow_file, input_pcp)
-        request_metadata()
+        get_iaas_solution(workflow_file, input_pcp, save=True)
+        # request_metadata()
     else:
         port = int(os.environ.get('PORT', 5001))
         app.run(host='0.0.0.0', port=port, debug=False)
