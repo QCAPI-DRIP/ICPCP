@@ -6,7 +6,8 @@ import aiohttp
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
 import matplotlib.pyplot as plt
-
+import math
+from definitions import EXPERIMENT_LOGS
 
 def request_backend(endpoint, port, workflow_file, input_file):
     request_url = "http://{endpoint}:{port}/upload".format(endpoint=endpoint, port=port)
@@ -52,7 +53,7 @@ def plot_multi_graph(x1, y1, x2, y2):
     # naming the x axis
     plt.xlabel('number of requests')
     # naming the y axis
-    plt.ylabel('response time')
+    plt.ylabel('response time (s)')
     # giving a title to my graph
     plt.title('Microservices vs monolithic')
 
@@ -62,7 +63,7 @@ def plot_multi_graph(x1, y1, x2, y2):
     # function to show the plot
     plt.show()
 
-def concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip, backend_port):
+def concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip, backend_port, architecture_type):
     # load input
     workflow_file = os.path.join(PLANNING_INPUT, "compile1.cwl")
     input_file = os.path.join(PLANNING_INPUT, "input_pcp.yaml")
@@ -73,7 +74,9 @@ def concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip,
     # We can use a with statement to ensure threads are cleaned up promptly
     futures = []
     number_of_requests = 1
-    with open("logs.txt", "a") as text_file:
+
+    log_file_loc = os.path.join(EXPERIMENT_LOGS, "{}.txt".format(architecture_type))
+    with open(log_file_loc, "a") as text_file:
         with ThreadPoolExecutor() as executor:
             for i in range(0, number_of_requests_rounds):
                 start_time = time.time()
@@ -83,13 +86,15 @@ def concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip,
 
                 for future in as_completed(futures):
                     try:
-                        if not future.result():
-                            text_file.write("After {] requests, no valid output \n".format(number_of_requests))
-                            break
+                        result = future.result()
+                        if not result:
+                            print("After {} requests, no valid output \n".format(number_of_requests))
+                            text_file.write("After {} requests, no valid output \n".format(number_of_requests))
+                            return False
 
                     except Exception as exc:
                         print(exc)
-                        break
+                        return False
 
                 response_time = time.time() - start_time
                 text_file.write(
@@ -107,7 +112,7 @@ def concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip,
 if __name__ == '__main__':
     concurrent_reqs = True
     # Starting with 1 request, each group of requests gets increased by specified factor
-    number_of_requests_rounds = 3
+    number_of_requests_rounds = 4
     factor = 2
     interval = 2
 
@@ -119,15 +124,18 @@ if __name__ == '__main__':
     backend_ip_micro = "52.224.197.60"
     backend_port_micro = "3001"
 
+    log_file_loc_mono = os.path.join(EXPERIMENT_LOGS, "{}.txt".format("mono"))
+    log_file_loc_micro = os.path.join(EXPERIMENT_LOGS, "{}.txt".format("micro"))
 
-
-    # clear log file
-    open('logs.txt', 'w').close()
+    # clear log files
+    open(log_file_loc_mono, 'w').close()
+    open(log_file_loc_micro, 'w').close()
 
     if concurrent_reqs:
-        graph_tuple_mono = concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip_mono, backend_port_mono)
-        graph_tuple_micro = concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip_micro, backend_port_micro)
-        plot_multi_graph(graph_tuple_mono[0], graph_tuple_mono[1], graph_tuple_micro[0], graph_tuple_micro[1])
+        graph_tuple_mono = concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip_mono, backend_port_mono, "mono")
+        graph_tuple_micro = concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip_micro, backend_port_micro, "micro")
+        if graph_tuple_mono and graph_tuple_micro:
+            plot_multi_graph(graph_tuple_mono[0], graph_tuple_mono[1], graph_tuple_micro[0], graph_tuple_micro[1])
     else:
         # load input
         workflow_file = os.path.join(PLANNING_INPUT, "compile1.cwl")
