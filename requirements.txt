@@ -11,3 +11,4 @@ flask_cors==3.0.8
 kubernetes==11.0.0
 docker==4.3.0
 aiohttp==3.6.2
+matplotlib==3.3.1
