@@ -111,6 +111,8 @@ env.bak/
 venv.bak/
 planning_input
 planning_output
+experiment_logs
+
 # Spyder project settings
 .spyderproject
 .spyproject
