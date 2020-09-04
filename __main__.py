@@ -191,9 +191,9 @@ def upload_files():
         input_file = request.files['input_file']
 
         #configure this if you dont want to use endpoints from endpointregistry
-        fixed_endpoint_parser_ip = "10.0.125.227"
+        fixed_endpoint_parser_ip = "52.224.203.20"
         fixed_endpoint_parser_port = "5003"
-        fixed_endpoint_planner_ip = "10.0.114.202"
+        fixed_endpoint_planner_ip = "52.224.203.30"
         fixed_endpoint_planner_port = "5002"
 
         workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
@@ -384,10 +384,10 @@ def tosca_url():
 
 
 if __name__ == '__main__':
-    run_without_flask = True
+    run_without_flask = False
     if run_without_flask:
         input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
-        workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "lobSTR.cwl")
+        workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
         # # runNaivePlanner(workflow_file, input_pcp)
         get_iaas_solution(workflow_file, input_pcp, save=True)
         # request_metadata()

@@ -95,7 +95,7 @@ class Workflow:
             self.add_exit_node()
             # sys.exit("\nQuit\n")
             # adjust perf table
-            self.p_table = np.append(self.p_table, np.zeros((4, 1), dtype=int), axis=1)
+            self.p_table = np.append(self.p_table, np.zeros((3, 1), dtype=int), axis=1)
         print("number of nodes in G: " + str(self.vertex_num))
         print(self.p_table)
 
