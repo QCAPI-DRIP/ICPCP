@@ -127,15 +127,18 @@ def concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip,
 
                 if architecture_type == "mono":
                     if number_of_requests in session_results_mono:
-                        session_results_mono[number_of_requests] = session_results_mono[number_of_requests].append(response_time)
+                        dict_value = session_results_mono[number_of_requests]
+                        dict_value.append(response_time)
+                        session_results_mono[number_of_requests] = dict_value
 
                     else:
                         session_results_mono[number_of_requests] = [response_time]
 
                 else:
                     if number_of_requests in session_results_micro:
-                        session_results_micro[number_of_requests] = session_results_micro[number_of_requests].append(
-                            response_time)
+                        dict_value = session_results_micro[number_of_requests]
+                        dict_value.append(response_time)
+                        session_results_micro[number_of_requests] = dict_value
 
                     else:
                         session_results_micro[number_of_requests] = [response_time]
@@ -176,7 +179,7 @@ if __name__ == '__main__':
     interval = 2
 
     #how many time do we execute the same experiment
-    number_of_experiment_rounds = 10
+    number_of_experiment_rounds = 2
     # set ip and port of backend (monolithic)
     backend_ip_mono = "52.224.205.134"
     backend_port_mono = "3001"
@@ -202,8 +205,28 @@ if __name__ == '__main__':
 
             else:
                 concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip_mono, backend_port_mono, "mono")
-                concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip_micro,
-                                                        backend_port_micro, "micro")
+                concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip_micro, backend_port_micro, "micro")
+
+
+        #do computations
+        number_of_requests_x_axis_mono = []
+        avg_performance_time_y_axis_mono = []
+
+        number_of_requests_x_axis_micro = []
+        avg_performance_time_y_axis_micro = []
+
+        for key, value in session_results_mono.items():
+            number_of_requests_x_axis_mono.append(key)
+            avg_performance_time_y_axis_mono.append(numpy.mean(value))
+
+        for key, value in session_results_micro.items():
+            number_of_requests_x_axis_micro.append(key)
+            avg_performance_time_y_axis_micro.append(numpy.mean(value))
+
+        plot_multi_graph(number_of_requests_x_axis_mono, avg_performance_time_y_axis_mono, number_of_requests_x_axis_micro, avg_performance_time_y_axis_micro)
+
+
+
     else:
         # load input
         workflow_file = os.path.join(PLANNING_INPUT, "compile1.cwl")
