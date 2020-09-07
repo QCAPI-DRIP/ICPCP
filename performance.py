@@ -40,15 +40,20 @@ def plot_to_graph(x, y):
     # naming the x axis
     plt.xlabel('Number of requests')
     # naming the y axis
-    plt.ylabel('Response time')
+    plt.ylabel('Standard deviation')
 
     # giving a title to my graph
-    plt.title('Performnace study')
+    plt.title('Performance study')
 
-    # function to show the plot
-    plt.show()
+    # show a legend on the plot
+    plt.legend()
+
+    # # function to show the plot
+    # plt.show()
+    plt.savefig(os.path.join(EXPERIMENT_LOGS, "deviation_2replicas1node"))
 
 def plot_multi_graph(x1, y1, x2, y2):
+    plt.figure(1)
     plt.plot(x1, y1, label="monolithic")
 
     plt.plot(x2, y2, label="microservices")
@@ -58,7 +63,7 @@ def plot_multi_graph(x1, y1, x2, y2):
     # naming the y axis
     plt.ylabel('response time (s)')
     # giving a title to my graph
-    plt.title('Microservices vs monolithic, avg=10')
+    plt.title('Average performance, avg=10')
 
     # show a legend on the plot
     plt.legend()
@@ -66,8 +71,29 @@ def plot_multi_graph(x1, y1, x2, y2):
     # # function to show the plot
     # plt.show()
 
-    plt.savefig(os.path.join(EXPERIMENT_LOGS, "2replicas1node"))
+    plt.savefig(os.path.join(EXPERIMENT_LOGS, "performance_2replicas1node"))
 
+
+def plot_multi_graph_dev(x1, y1, x2, y2):
+    plt.figure(2)
+    plt.plot(x1, y1, label="monolithic")
+
+    plt.plot(x2, y2, label="microservices")
+
+    # naming the x axis
+    plt.xlabel('number of requests')
+    # naming the y axis
+    plt.ylabel('Standard deviation')
+    # giving a title to my graph
+    plt.title('Standard deviation, data=10')
+
+    # show a legend on the plot
+    plt.legend()
+    #
+    # # function to show the plot
+    # plt.show()
+
+    plt.savefig(os.path.join(EXPERIMENT_LOGS, "deviation_2replicas1node"))
 
 session_results_mono = {}
 session_results_micro = {}
@@ -240,7 +266,7 @@ if __name__ == '__main__':
                 writer.writerow([key, mean, deviation])
 
         plot_multi_graph(number_of_requests_x_axis_mono, avg_performance_time_y_axis_mono, number_of_requests_x_axis_micro, avg_performance_time_y_axis_micro)
-
+        plot_multi_graph_dev(number_of_requests_x_axis_mono, deviation_mono, number_of_requests_x_axis_micro, deviation_micro)
 
 
     else:
