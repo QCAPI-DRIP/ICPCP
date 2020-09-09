@@ -191,9 +191,14 @@ def upload_files():
         input_file = request.files['input_file']
 
         #configure this if you dont want to use endpoints from endpointregistry
-        fixed_endpoint_parser_ip = "52.224.203.20"
+        # fixed_endpoint_parser_ip = "52.224.203.20"
+        # fixed_endpoint_parser_port = "5003"
+        # fixed_endpoint_planner_ip = "52.224.203.30"
+        # fixed_endpoint_planner_port = "5002"
+
+        fixed_endpoint_parser_ip = "localhost"
         fixed_endpoint_parser_port = "5003"
-        fixed_endpoint_planner_ip = "52.224.203.30"
+        fixed_endpoint_planner_ip = "localhost"
         fixed_endpoint_planner_port = "5002"
 
         workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
@@ -266,14 +271,26 @@ def upload_files():
 
                 vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
                 servers = []
+                total_cost = 0
+                highest_end_time = 0
                 for vm in vm_data:
                     tasks = vm['tasks']
                     vm_start = vm['vm_start']
                     vm_end = vm['vm_end']
+                    vm_type = vm['vm_type']
+                    vm_cost = vm['vm_cost']
+
                     properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
-                    server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                    server = NewInstance(vm_type, vm_cost, vm_start, vm_end, tasks)
                     server.properties = properties
                     server.task_names = tasks
+
+                    #add cost of vm to total cost and find vm with highest end time
+                    total_cost += server.get_cost()
+                    if vm_end > highest_end_time:
+                        highest_end_time = vm_end
+
+
                     servers.append(server)
                     tosca_file = generate_tosca(servers, microservices=True)
 
@@ -284,6 +301,124 @@ def upload_files():
             tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
             return redirect(url_for('uploaded_file', filename=tosca_file_name))
 
+
+def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
+    added_endpoints = False
+
+    #configure this if you dont want to use endpoints from endpointregistry
+    fixed_endpoint_parser_ip = "localhost"
+    fixed_endpoint_parser_port = "5003"
+
+    fixed_endpoint_planner_ip = "localhost"
+    fixed_endpoint_planner_port = "5002"
+
+    fixed_endpoint_planner2_ip = "localhost"
+    fixed_endpoint_planner2_port = "5004"
+
+
+    #microservice based
+    if MICRO_SERVICE:
+        with open(input_file_loc, 'r') as stream:
+            data_loaded = yaml.safe_load(stream)
+            price = data_loaded[0]["price"]
+            deadline = data_loaded[2]["deadline"]
+            performance_with_vm = data_loaded[1]["performance"]
+            performance = []
+            for key, value in performance_with_vm.items():
+                performance.append(value)
+
+        icpcp_parameters = {'price': price, 'performance': performance, 'deadline': deadline}
+
+        #search for available endpoints
+        if added_endpoints:
+            #find out what microservices are available
+            parsers_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
+            planners_file_loc = os.path.join(ENDPOINTS_PATH, 'planners.yaml')
+
+            with open(parsers_file_loc, 'r') as stream:
+                try:
+                    parsers_data = yaml.safe_load(stream)
+                except yaml.YAMLError as exc:
+                    print(exc)
+
+            with open(planners_file_loc, 'r') as stream:
+                try:
+                    planners_data = yaml.safe_load(stream)
+                except yaml.YAMLError as exc:
+                    print(exc)
+
+
+            parser_endpoints = parsers_data['.cwl']
+            planner_endpoints = list(planners_data.keys())
+
+            # list of generated tosca files
+            tosca_files = []
+
+            #send workflow file to each available parser that supports its format
+            for (endpoint, port) in parser_endpoints:
+                parser_data = request_metadata(endpoint, port, workflow_file_loc)
+                parser_data['icpcp_params'] = icpcp_parameters
+
+                #send the parser output to each available planner
+                for (endpoint_planner, port_planner) in planner_endpoints:
+                    vm_data = request_vm_sizes(endpoint_planner, port_planner, parser_data)
+                    servers = []
+                    for vm in vm_data:
+                        tasks = vm['tasks']
+                        vm_start = vm['vm_start']
+                        vm_end = vm['vm_end']
+                        properties = {'num_cpus' : vm['num_cpus'], 'disk_size' : vm['disk_size'], 'mem_size' : vm['mem_size']}
+                        server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                        server.properties = properties
+                        server.task_names = tasks
+                        servers.append(server)
+                        tosca_file = generate_tosca(servers, microservices=True)
+                        tosca_files.append(tosca_file)
+        else:
+            parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
+            parser_data['icpcp_params'] = icpcp_parameters
+
+            #greedy without repair cycle
+            vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
+            servers = []
+            tosca_files = []
+            for vm in vm_data:
+                tasks = vm['tasks']
+                vm_start = vm['vm_start']
+                vm_end = vm['vm_end']
+                properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
+                server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                server.properties = properties
+                server.task_names = tasks
+                servers.append(server)
+                tosca_file = generate_tosca(servers, microservices=True)
+                tosca_files.append(tosca_file)
+
+
+            # greedy with repair cycle
+            vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
+            servers2 = []
+            for vm in vm_data2:
+                tasks = vm['tasks']
+                vm_start = vm['vm_start']
+                vm_end = vm['vm_end']
+                properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
+                server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                server.properties = properties
+                server.task_names = tasks
+                servers.append(server)
+                tosca_file2 = generate_tosca(servers, microservices=True)
+                tosca_files.append(tosca_file2)
+
+
+
+
+        return True
+
+    #non microservice based
+    else:
+        tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
+        return redirect(url_for('uploaded_file', filename=tosca_file_name))
 
 @app.route('/optimizer', methods=['POST'])
 def compare_performance():
