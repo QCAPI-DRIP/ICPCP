@@ -169,6 +169,31 @@ def request_vm_sizes(endpoint, port, parser_data):
     plan_data = resp.json()
     return plan_data
 
+def get_servers(vm_data):
+    servers = []
+    total_cost = 0
+    highest_end_time = 0
+    for vm in vm_data:
+        tasks = vm['tasks']
+        vm_start = vm['vm_start']
+        vm_end = vm['vm_end']
+        vm_type = vm['vm_type']
+        vm_cost = vm['vm_cost']
+
+        properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
+        server = NewInstance(vm_type, vm_cost, vm_start, vm_end, tasks)
+        server.properties = properties
+        server.task_names = tasks
+
+        # add cost of vm to total cost and find vm with highest end time
+        total_cost += server.get_cost()
+        if vm_end > highest_end_time:
+            highest_end_time = vm_end
+
+        servers.append(server)
+    return servers, total_cost, highest_end_time
+
+
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     try:
@@ -200,6 +225,8 @@ def upload_files():
         fixed_endpoint_parser_port = "5003"
         fixed_endpoint_planner_ip = "localhost"
         fixed_endpoint_planner_port = "5002"
+        fixed_endpoint_planner2_ip = "localhost"
+        fixed_endpoint_planner2_port = "5005"
 
         workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
                                          werkzeug.utils.secure_filename(workflow_file.filename))
@@ -270,36 +297,22 @@ def upload_files():
                 parser_data['icpcp_params'] = icpcp_parameters
 
                 vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
-                servers = []
-                total_cost = 0
-                highest_end_time = 0
-                for vm in vm_data:
-                    tasks = vm['tasks']
-                    vm_start = vm['vm_start']
-                    vm_end = vm['vm_end']
-                    vm_type = vm['vm_type']
-                    vm_cost = vm['vm_cost']
+                #vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
 
-                    properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
-                    server = NewInstance(vm_type, vm_cost, vm_start, vm_end, tasks)
-                    server.properties = properties
-                    server.task_names = tasks
+                servers_icpcp = get_servers(vm_data)
+                #servers_icpcp_greedy_repair = get_servers(vm_data2)
 
-                    #add cost of vm to total cost and find vm with highest end time
-                    total_cost += server.get_cost()
-                    if vm_end > highest_end_time:
-                        highest_end_time = vm_end
+                tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
+                #tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair, microservices=True)
 
 
-                    servers.append(server)
-                    tosca_file = generate_tosca(servers, microservices=True)
-
-            return redirect(url_for('uploaded_file', filename=tosca_file))
+            return redirect(url_for('uploaded_file', filename=tosca_file_icpcp))
 
         #non microservice based
         else:
             tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
             return redirect(url_for('uploaded_file', filename=tosca_file_name))
+
 
 
 def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
