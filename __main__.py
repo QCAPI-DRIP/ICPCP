@@ -221,9 +221,9 @@ def upload_files():
         # fixed_endpoint_planner_ip = "52.224.203.30"
         # fixed_endpoint_planner_port = "5002"
 
-        fixed_endpoint_parser_ip = "localhost"
+        fixed_endpoint_parser_ip = "10.0.194.155"
         fixed_endpoint_parser_port = "5003"
-        fixed_endpoint_planner_ip = "localhost"
+        fixed_endpoint_planner_ip = "10.0.238.120"
         fixed_endpoint_planner_port = "5002"
         fixed_endpoint_planner2_ip = "localhost"
         fixed_endpoint_planner2_port = "5005"
