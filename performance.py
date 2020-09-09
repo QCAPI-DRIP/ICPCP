@@ -50,18 +50,18 @@ def plot_to_graph(x, y):
 
     # # function to show the plot
     # plt.show()
-    plt.savefig(os.path.join(EXPERIMENT_LOGS, "deviation_2replicas1node"))
+    plt.savefig(os.path.join(EXPERIMENT_LOGS, "deviation_4replicas3nodes"))
 
 def plot_multi_graph(x1, y1, x2, y2):
     plt.figure(1)
-    plt.plot(x1, y1, label="monolithic")
+    plt.plot(x1, y1, label="mono_avg_resp")
 
-    plt.plot(x2, y2, label="microservices")
+    plt.plot(x2, y2, label="micro_avg_resp")
 
     # naming the x axis
-    plt.xlabel('number of requests')
+    plt.xlabel('Number of requests')
     # naming the y axis
-    plt.ylabel('response time (s)')
+    plt.ylabel('Response time (s)')
     # giving a title to my graph
     plt.title('Average performance, avg=10')
 
@@ -71,21 +71,21 @@ def plot_multi_graph(x1, y1, x2, y2):
     # # function to show the plot
     # plt.show()
 
-    plt.savefig(os.path.join(EXPERIMENT_LOGS, "performance_2replicas1node"))
+    plt.savefig(os.path.join(EXPERIMENT_LOGS, "performance_4replicas3nodes"))
 
-
-def plot_multi_graph_dev(x1, y1, x2, y2):
+def plot_multi_graph_log(x1, y1, x2, y2):
     plt.figure(2)
-    plt.plot(x1, y1, label="monolithic")
+    plt.plot(x1, y1, label="mono_avg_resp")
 
-    plt.plot(x2, y2, label="microservices")
+    plt.plot(x2, y2, label="micro_avg_resp")
 
+    plt.yscale('log')
     # naming the x axis
-    plt.xlabel('number of requests')
+    plt.xlabel('Number of requests')
     # naming the y axis
-    plt.ylabel('Standard deviation')
+    plt.ylabel('Response time (s)')
     # giving a title to my graph
-    plt.title('Standard deviation, data=10')
+    plt.title('Average performance, avg=10, log_scale')
 
     # show a legend on the plot
     plt.legend()
@@ -93,7 +93,30 @@ def plot_multi_graph_dev(x1, y1, x2, y2):
     # # function to show the plot
     # plt.show()
 
-    plt.savefig(os.path.join(EXPERIMENT_LOGS, "deviation_2replicas1node"))
+    plt.savefig(os.path.join(EXPERIMENT_LOGS, "log_performance_4replicas3nodes"))
+
+
+def plot_multi_graph_dev(x1, y1, x2, y2):
+    plt.figure(3)
+    plt.plot(x1, y1, label="mono_std_dev")
+
+    plt.plot(x2, y2, label="micro_std_dev")
+
+
+    # naming the x axis
+    # plt.xlabel('number of requests')
+    # # naming the y axis
+    # plt.ylabel('Standard deviation')
+    # # giving a title to my graph
+    # plt.title('Standard deviation, data=10')
+    #
+    # show a legend on the plot
+    plt.legend()
+    #
+    # # function to show the plot
+    # plt.show()
+
+    plt.savefig(os.path.join(EXPERIMENT_LOGS, "deviation_4replicas3nodes"))
 
 session_results_mono = {}
 session_results_micro = {}
@@ -114,7 +137,7 @@ def concurrent_requests(number_of_requests_rounds, factor, interval, backend_ip,
     futures = []
     number_of_requests = 1
 
-    with open(os.path.join(EXPERIMENT_LOGS, '{}2replicas1node.csv'.format(architecture_type)), 'a', newline='') as csvfile:
+    with open(os.path.join(EXPERIMENT_LOGS, '{}4replicas3nodes.csv'.format(architecture_type)), 'a', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["Number of requests", "Response time (s)"])
 
@@ -198,12 +221,12 @@ if __name__ == '__main__':
     concurrent_reqs = True
     print_graph = False
     # Starting with 1 request, each group of requests gets increased by specified factor
-    number_of_requests_rounds = 2
+    number_of_requests_rounds = 10
     factor = 2
     interval = 2
 
     #how many time do we execute the same experiment
-    number_of_experiment_rounds = 2
+    number_of_experiment_rounds = 10
     # set ip and port of backend (monolithic)
     backend_ip_mono = "52.224.205.134"
     backend_port_mono = "3001"
@@ -236,37 +259,78 @@ if __name__ == '__main__':
         number_of_requests_x_axis_mono = []
         avg_performance_time_y_axis_mono = []
         deviation_mono = []
+        std_error_mono = []
 
         number_of_requests_x_axis_micro = []
         avg_performance_time_y_axis_micro = []
         deviation_micro = []
+        std_error_micro = []
 
-        with open(os.path.join(EXPERIMENT_LOGS, 'mono_avg_2replicas1node.csv'), 'a', newline='') as csvfile:
+        with open(os.path.join(EXPERIMENT_LOGS, 'mono_avg_4replicas3nodes.csv'), 'a', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["Number of requests", "Average response time (s)", "Standard deviation"])
+            writer.writerow(["Number of requests", "Average response time (s)", "Standard deviation", "Standard error"])
 
             for key, value in session_results_mono.items():
                 number_of_requests_x_axis_mono.append(key)
                 mean = numpy.mean(value)
                 deviation = numpy.std(value)
+                std_error = deviation / math.sqrt(len(value))
+
                 avg_performance_time_y_axis_mono.append(mean)
                 deviation_mono.append(deviation)
-                writer.writerow([key, mean, deviation])
+                std_error_mono.append(std_error)
 
-        with open(os.path.join(EXPERIMENT_LOGS, 'micro_avg_2replicas1node.csv'), 'a', newline='') as csvfile:
+                writer.writerow([key, mean, deviation, std_error])
+
+        with open(os.path.join(EXPERIMENT_LOGS, 'micro_avg_4replicas3nodes.csv'), 'a', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["Number of requests", "Average response time (s), Standard deviation"])
+            writer.writerow(["Number of requests", "Average response time (s), Standard deviation", "Standard error"])
 
             for key, value in session_results_micro.items():
                 number_of_requests_x_axis_micro.append(key)
                 mean = numpy.mean(value)
                 deviation = numpy.std(value)
+                std_error = deviation / math.sqrt(len(value))
+
                 avg_performance_time_y_axis_micro.append(mean)
                 deviation_micro.append(deviation)
-                writer.writerow([key, mean, deviation])
+                std_error_micro.append(std_error)
+                writer.writerow([key, mean, deviation, std_error])
 
         plot_multi_graph(number_of_requests_x_axis_mono, avg_performance_time_y_axis_mono, number_of_requests_x_axis_micro, avg_performance_time_y_axis_micro)
+        plot_multi_graph_log(number_of_requests_x_axis_mono, avg_performance_time_y_axis_mono, number_of_requests_x_axis_micro, avg_performance_time_y_axis_micro)
+
         plot_multi_graph_dev(number_of_requests_x_axis_mono, deviation_mono, number_of_requests_x_axis_micro, deviation_micro)
+
+        #plot errorbars
+        plt.figure(4)
+        plt.errorbar(number_of_requests_x_axis_mono, avg_performance_time_y_axis_mono, yerr=std_error_mono, fmt='-o', label="mono")
+        plt.errorbar(number_of_requests_x_axis_micro, avg_performance_time_y_axis_micro, yerr=std_error_micro, fmt='-o', label="micro")
+        plt.yscale('log')
+        plt.xlabel('Number of requests')
+        # naming the y axis
+        plt.ylabel('Response time (s)')
+        plt.legend()
+
+        # giving a title to my graph
+        plt.title('Performance study')
+
+        plt.savefig(os.path.join(EXPERIMENT_LOGS, "log_errorbounds_4replicas3nodes"))
+
+        plt.figure(5)
+        plt.errorbar(number_of_requests_x_axis_mono, avg_performance_time_y_axis_mono, yerr=std_error_mono, fmt='-o',
+                     label="mono")
+        plt.errorbar(number_of_requests_x_axis_micro, avg_performance_time_y_axis_micro, yerr=std_error_micro, fmt='-o',
+                     label="micro")
+        plt.xlabel('Number of requests')
+        # naming the y axis
+        plt.ylabel('Response time (s)')
+        plt.legend()
+
+        # giving a title to my graph
+        plt.title('Performance study')
+
+        plt.savefig(os.path.join(EXPERIMENT_LOGS, "errorbounds_4replicas3nodes"))
 
 
     else:
