@@ -13,10 +13,10 @@ from legacy_code.tosca_generator import ToscaGenerator
 import legacy_code.naive_planner as plan
 from legacy_code.NewInstance import NewInstance
 from definitions import ENDPOINTS_PATH
-#from components.endpoint_registry import EndPointRegistry
+# from components.endpoint_registry import EndPointRegistry
 import json
 
-#set to true for microservice based architecture
+# set to true for microservice based architecture
 MICRO_SERVICE = True
 
 DEBUG = True
@@ -90,7 +90,6 @@ def get_iaas_solution(workflow_file_path, input_file_path, save=None, microservi
     cwl_parser = CwlParser(workflow_file_path)
     dag = cwl_parser.g
 
-
     # Run IC-PCP algorithm
     servers = run_icpc(dag, input_file_path)
 
@@ -110,7 +109,7 @@ def get_iaas_solution(workflow_file_path, input_file_path, save=None, microservi
 
 
 def generate_tosca(servers, microservices=False):
-    #Load tosca geneartor
+    # Load tosca geneartor
     tosca_gen = ToscaGenerator()
     tosca_gen.load_default_template()
 
@@ -128,6 +127,7 @@ def generate_tosca(servers, microservices=False):
     return tosca_file_name
     print(servers[i].properties)
 
+
 def run_naive_planner(workflow_file_path, input_file_path):
     cwl_parser = CwlParser(workflow_file_path)
     task_names = cwl_parser.tasks
@@ -136,8 +136,6 @@ def run_naive_planner(workflow_file_path, input_file_path):
     for vm in servers:
         for task in vm.task_list:
             print("{} -----> {}".format(vm.vm_type, task_names[task]))
-
-
 
 
 def request_metadata(endpoint, port, workflow_file=None):
@@ -153,23 +151,21 @@ def request_metadata(endpoint, port, workflow_file=None):
     parser_data = resp.json()
     return parser_data
 
-
     # pprint(resp)
-
-
-
 
 
 def request_vm_sizes(endpoint, port, parser_data):
     """"Request vm sizes from planner"""
     request_url = "http://{endpoint}:{port}/plan".format(endpoint=endpoint, port=port)
-    #request_url = "http://icpcp-planner-service.default:30392/plan"
+    # request_url = "http://icpcp-planner-service.default:30392/plan"
     # request_url = "http://10.0.114.202:5002/plan"
     resp = requests.post(request_url, json=parser_data)
     plan_data = resp.json()
     return plan_data
 
+
 def get_servers(vm_data):
+    """returns (servers, total_cost, highest_end_time)"""
     servers = []
     total_cost = 0
     highest_end_time = 0
@@ -202,17 +198,21 @@ def uploaded_file(filename):
     except FileNotFoundError:
         abort(404)
 
+
 @app.route('/architecture')
 def get_architecture():
     return json.dumps(MICRO_SERVICE)
 
 
 performance_indicator_storage = [{}]
+
+
 @app.route('/performance_indicator/<kpi>')
 def get_kpis(kpi):
     if kpi == 'makespan':
-        max_makespan = max(performance_indicator_storage, key=lambda x:x['makespan'])
+        max_makespan = max(performance_indicator_storage, key=lambda x: x['makespan'])
         min_makespan = min(performance_indicator_storage, key=lambda x: x['makespan'])
+        return jsonify
 
     if kpi == 'total_cost':
         max_total_cost = max(performance_indicator_storage, key=lambda x: x['total_cost'])
@@ -228,7 +228,7 @@ def upload_files():
         workflow_file = request.files['workflow_file']
         input_file = request.files['input_file']
 
-        #configure this if you dont want to use endpoints from endpointregistry
+        # configure this if you dont want to use endpoints from endpointregistry
         # fixed_endpoint_parser_ip = "52.224.203.20"
         # fixed_endpoint_parser_port = "5003"
         # fixed_endpoint_planner_ip = "52.224.203.30"
@@ -247,7 +247,7 @@ def upload_files():
         workflow_file.save(workflow_file_loc)
         input_file.save(input_file_loc)
 
-        #microservice based
+        # microservice based
         if MICRO_SERVICE:
             with open(input_file_loc, 'r') as stream:
                 data_loaded = yaml.safe_load(stream)
@@ -260,9 +260,9 @@ def upload_files():
 
             icpcp_parameters = {'price': price, 'performance': performance, 'deadline': deadline}
 
-            #search for available endpoints
+            # search for available endpoints
             if added_endpoints:
-                #find out what microservices are available
+                # find out what microservices are availablea
                 parsers_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
                 planners_file_loc = os.path.join(ENDPOINTS_PATH, 'planners.yaml')
 
@@ -278,19 +278,18 @@ def upload_files():
                     except yaml.YAMLError as exc:
                         print(exc)
 
-
                 parser_endpoints = parsers_data['.cwl']
                 planner_endpoints = list(planners_data.keys())
 
                 # list of generated tosca files
                 tosca_files = []
 
-                #send workflow file to each available parser that supports its format
+                # send workflow file to each available parser that supports its format
                 for (endpoint, port) in parser_endpoints:
                     parser_data = request_metadata(endpoint, port, workflow_file_loc)
                     parser_data['icpcp_params'] = icpcp_parameters
 
-                    #send the parser output to each available planner
+                    # send the parser output to each available planner
                     for (endpoint_planner, port_planner) in planner_endpoints:
                         vm_data = request_vm_sizes(endpoint_planner, port_planner, parser_data)
                         servers = []
@@ -298,7 +297,8 @@ def upload_files():
                             tasks = vm['tasks']
                             vm_start = vm['vm_start']
                             vm_end = vm['vm_end']
-                            properties = {'num_cpus' : vm['num_cpus'], 'disk_size' : vm['disk_size'], 'mem_size' : vm['mem_size']}
+                            properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'],
+                                          'mem_size': vm['mem_size']}
                             server = NewInstance(0, 0, vm_start, vm_end, tasks)
                             server.properties = properties
                             server.task_names = tasks
@@ -310,28 +310,29 @@ def upload_files():
                 parser_data['icpcp_params'] = icpcp_parameters
 
                 vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
-                vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
+                # vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
 
                 servers_icpcp = get_servers(vm_data)
-                #servers_icpcp_greedy_repair = get_servers(vm_data2)
+                # servers_icpcp_greedy_repair = get_servers(vm_data2)
 
                 tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
-                #tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair, microservices=True)
-
+                # tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair, microservices=True)
+                performance_indicator_storage.append(
+                    dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
+                return json.dumps({'success': True}, 200)
 
             return redirect(url_for('uploaded_file', filename=tosca_file_icpcp))
 
-        #non microservice based
+        # non microservice based
         else:
             tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
             return redirect(url_for('uploaded_file', filename=tosca_file_name))
 
 
-
 def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
     added_endpoints = False
 
-    #configure this if you dont want to use endpoints from endpointregistry
+    # configure this if you dont want to use endpoints from endpointregistry
     fixed_endpoint_parser_ip = "localhost"
     fixed_endpoint_parser_port = "5003"
 
@@ -341,8 +342,7 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
     fixed_endpoint_planner2_ip = "localhost"
     fixed_endpoint_planner2_port = "5004"
 
-
-    #microservice based
+    # microservice based
     if MICRO_SERVICE:
         with open(input_file_loc, 'r') as stream:
             data_loaded = yaml.safe_load(stream)
@@ -355,9 +355,9 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
 
         icpcp_parameters = {'price': price, 'performance': performance, 'deadline': deadline}
 
-        #search for available endpoints
+        # search for available endpoints
         if added_endpoints:
-            #find out what microservices are available
+            # find out what microservices are available
             parsers_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
             planners_file_loc = os.path.join(ENDPOINTS_PATH, 'planners.yaml')
 
@@ -373,19 +373,18 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
                 except yaml.YAMLError as exc:
                     print(exc)
 
-
             parser_endpoints = parsers_data['.cwl']
             planner_endpoints = list(planners_data.keys())
 
             # list of generated tosca files
             tosca_files = []
 
-            #send workflow file to each available parser that supports its format
+            # send workflow file to each available parser that supports its format
             for (endpoint, port) in parser_endpoints:
                 parser_data = request_metadata(endpoint, port, workflow_file_loc)
                 parser_data['icpcp_params'] = icpcp_parameters
 
-                #send the parser output to each available planner
+                # send the parser output to each available planner
                 for (endpoint_planner, port_planner) in planner_endpoints:
                     vm_data = request_vm_sizes(endpoint_planner, port_planner, parser_data)
                     servers = []
@@ -393,7 +392,8 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
                         tasks = vm['tasks']
                         vm_start = vm['vm_start']
                         vm_end = vm['vm_end']
-                        properties = {'num_cpus' : vm['num_cpus'], 'disk_size' : vm['disk_size'], 'mem_size' : vm['mem_size']}
+                        properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'],
+                                      'mem_size': vm['mem_size']}
                         server = NewInstance(0, 0, vm_start, vm_end, tasks)
                         server.properties = properties
                         server.task_names = tasks
@@ -404,7 +404,7 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
             parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
             parser_data['icpcp_params'] = icpcp_parameters
 
-            #greedy without repair cycle
+            # greedy without repair cycle
             vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
             servers = []
             tosca_files = []
@@ -419,7 +419,6 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
                 servers.append(server)
                 tosca_file = generate_tosca(servers, microservices=True)
                 tosca_files.append(tosca_file)
-
 
             # greedy with repair cycle
             vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
@@ -436,15 +435,13 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
                 tosca_file2 = generate_tosca(servers, microservices=True)
                 tosca_files.append(tosca_file2)
 
-
-
-
         return True
 
-    #non microservice based
+    # non microservice based
     else:
         tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
         return redirect(url_for('uploaded_file', filename=tosca_file_name))
+
 
 @app.route('/optimizer', methods=['POST'])
 def compare_performance():
@@ -555,5 +552,4 @@ if __name__ == '__main__':
     else:
         port = int(os.environ.get('PORT', 5001))
         app.run(host='0.0.0.0', port=port, debug=False)
-        #test_cluster()
-
+        # test_cluster()
