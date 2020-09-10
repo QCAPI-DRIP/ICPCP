@@ -206,6 +206,19 @@ def uploaded_file(filename):
 def get_architecture():
     return json.dumps(MICRO_SERVICE)
 
+
+performance_indicator_storage = [{}]
+@app.route('/performance_indicator/<kpi>')
+def get_kpis(kpi):
+    if kpi == 'makespan':
+        max_makespan = max(performance_indicator_storage, key=lambda x:x['makespan'])
+        min_makespan = min(performance_indicator_storage, key=lambda x: x['makespan'])
+
+    if kpi == 'total_cost':
+        max_total_cost = max(performance_indicator_storage, key=lambda x: x['total_cost'])
+        min_total_cost = min(performance_indicator_storage, key=lambda x: x['total_cost'])
+
+
 @app.route('/upload', methods=['POST'])
 def upload_files():
     if request.method == 'POST':
@@ -221,9 +234,9 @@ def upload_files():
         # fixed_endpoint_planner_ip = "52.224.203.30"
         # fixed_endpoint_planner_port = "5002"
 
-        fixed_endpoint_parser_ip = "10.0.194.155"
+        fixed_endpoint_parser_ip = "localhost"
         fixed_endpoint_parser_port = "5003"
-        fixed_endpoint_planner_ip = "10.0.238.120"
+        fixed_endpoint_planner_ip = "localhost"
         fixed_endpoint_planner_port = "5002"
         fixed_endpoint_planner2_ip = "localhost"
         fixed_endpoint_planner2_port = "5005"
@@ -297,7 +310,7 @@ def upload_files():
                 parser_data['icpcp_params'] = icpcp_parameters
 
                 vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
-                #vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
+                vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
 
                 servers_icpcp = get_servers(vm_data)
                 #servers_icpcp_greedy_repair = get_servers(vm_data2)
