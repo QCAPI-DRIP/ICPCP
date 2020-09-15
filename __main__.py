@@ -204,20 +204,42 @@ def get_architecture():
     return json.dumps(MICRO_SERVICE)
 
 
-performance_indicator_storage = [{}]
+performance_indicator_storage = []
 
 
 @app.route('/performance_indicator/<kpi>')
 def get_kpis(kpi):
+    if not performance_indicator_storage[0]:
+        return jsonify(False)
+
+    result = []
     if kpi == 'makespan':
-        max_makespan = max(performance_indicator_storage, key=lambda x: x['makespan'])
         min_makespan = min(performance_indicator_storage, key=lambda x: x['makespan'])
-        return jsonify
+        max_makespan = max(performance_indicator_storage, key=lambda x: x['makespan'])
+        if (min_makespan['tosca_file_name'] == max_makespan['tosca_file_name']):
+            min_makespan['id'] = "Lowest and highest makespan"
+            result.append(min_makespan)
+            return jsonify(result)
+
+        min_makespan['id'] = "Lowest makespan"
+        result.append(min_makespan)
+        max_makespan['id'] = "Highest makespan"
+        result.append(max_makespan)
+        return jsonify(result)
 
     if kpi == 'total_cost':
-        max_total_cost = max(performance_indicator_storage, key=lambda x: x['total_cost'])
         min_total_cost = min(performance_indicator_storage, key=lambda x: x['total_cost'])
+        max_total_cost = max(performance_indicator_storage, key=lambda x: x['total_cost'])
+        if (min_total_cost['tosca_file_name'] == max_total_cost['tosca_file_name']):
+            min_total_cost['id'] = "Lowest lost and highest cost"
+            result.append(max_total_cost)
+            return jsonify(result)
 
+        min_total_cost['id'] = "Lowest cost"
+        max_total_cost['id'] = "Highest cost"
+        result.append(min_total_cost)
+        result.append(max_total_cost)
+        return jsonify(result)
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
@@ -319,9 +341,9 @@ def upload_files():
                 # tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair, microservices=True)
                 performance_indicator_storage.append(
                     dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
-                return json.dumps({'success': True}, 200)
+                return jsonify(True)
 
-            return redirect(url_for('uploaded_file', filename=tosca_file_icpcp))
+            # return redirect(url_for('uploaded_file', filename=tosca_file_icpcp))
 
         # non microservice based
         else:
