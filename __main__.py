@@ -14,6 +14,7 @@ import legacy_code.naive_planner as plan
 from legacy_code.NewInstance import NewInstance
 from definitions import ENDPOINTS_PATH
 # from components.endpoint_registry import EndPointRegistry
+from components.virtual_machine import VirtualMachine
 import json
 
 # set to true for microservice based architecture
@@ -30,6 +31,10 @@ ALLOWED_EXTENSIONS = {'cwl', 'yaml'}
 
 CORS(app, resources={r'/*': {'origins': '*'}})
 CURRENT_DIR = os.path.dirname(__file__)
+
+AVAILABLE_SERVERS = {'Azure': [VirtualMachine(1, "1", "768MB", "20GB"), VirtualMachine(2, "2", "1.75GB", "40GB"), VirtualMachine(3, "4", "7GB", "120GB")],
+                     'Amazon': [VirtualMachine(1, "1", "768MB", "20GB"), VirtualMachine(2, "2", "1.75GB", "40GB"), VirtualMachine(3, "4", "7GB", "120GB")]
+                     'Google Cloud' : [VirtualMachine(1, "1", "768MB", "20GB"), VirtualMachine(2, "2", "1.75GB", "40GB"), VirtualMachine(3, "4", "7GB", "120GB")]}
 
 
 def run_icpc(dag=None, combined_input=None):
@@ -241,6 +246,7 @@ def get_kpis(kpi):
         result.append(max_total_cost)
         return jsonify(result)
 
+
 @app.route('/upload', methods=['POST'])
 def upload_files():
     if request.method == 'POST':
@@ -332,13 +338,13 @@ def upload_files():
                 parser_data['icpcp_params'] = icpcp_parameters
 
                 vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
-                # vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
+                vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
 
                 servers_icpcp = get_servers(vm_data)
-                # servers_icpcp_greedy_repair = get_servers(vm_data2)
+                servers_icpcp_greedy_repair = get_servers(vm_data2)
 
                 tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
-                # tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair, microservices=True)
+                tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair, microservices=True)
                 performance_indicator_storage.append(
                     dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
                 return jsonify(True)
