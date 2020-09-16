@@ -32,10 +32,6 @@ ALLOWED_EXTENSIONS = {'cwl', 'yaml'}
 CORS(app, resources={r'/*': {'origins': '*'}})
 CURRENT_DIR = os.path.dirname(__file__)
 
-AVAILABLE_SERVERS = {'Azure': [VirtualMachine(1, "1", "768MB", "20GB"), VirtualMachine(2, "2", "1.75GB", "40GB"), VirtualMachine(3, "4", "7GB", "120GB")],
-                     'Amazon': [VirtualMachine(1, "1", "768MB", "20GB"), VirtualMachine(2, "2", "1.75GB", "40GB"), VirtualMachine(3, "4", "7GB", "120GB")]
-                     'Google Cloud' : [VirtualMachine(1, "1", "768MB", "20GB"), VirtualMachine(2, "2", "1.75GB", "40GB"), VirtualMachine(3, "4", "7GB", "120GB")]}
-
 
 def run_icpc(dag=None, combined_input=None):
     wf = Workflow()
@@ -209,9 +205,19 @@ def get_architecture():
     return json.dumps(MICRO_SERVICE)
 
 
+
+
+AVAILABLE_SERVERS = {'Azure': [{'id': 1, 'num_cpus': 1, 'mem_size' : "768MB", 'disk_size' : "20GB"}, {'id': 2, 'num_cpus': 2, 'mem_size' : "1.75GB", 'disk_size' : "40GB"}, {'id': 3, 'num_cpus': 4, 'mem_size' : "7GB", 'disk_size' : "120GB"}],
+                     'Amazon': [{'id': 1, 'num_cpus': 1, 'mem_size' : "768MB", 'disk_size' : "20GB"}, {'id': 2, 'num_cpus': 2, 'mem_size' : "1.75GB", 'disk_size' : "40GB"}, {'id': 3, 'num_cpus': 4, 'mem_size' : "7GB", 'disk_size' : "120GB"}],
+                     'Google Cloud' : [{'id': 1, 'num_cpus': 1, 'mem_size' : "768MB", 'disk_size' : "20GB"}, {'id': 2, 'num_cpus': 2, 'mem_size' : "1.75GB", 'disk_size' : "40GB"}, {'id': 3, 'num_cpus': 4, 'mem_size' : "7GB", 'disk_size' : "120GB"}]}
+
+# [VirtualMachine(1, "1", "768MB", "20GB"), VirtualMachine(2, "2", "1.75GB", "40GB"), VirtualMachine(3, "4", "7GB", "120GB")]
+@app.route('/get_vms/<provider>')
+def get_available_vms(provider):
+    vm_list = AVAILABLE_SERVERS[provider]
+    return jsonify(vm_list)
+
 performance_indicator_storage = []
-
-
 @app.route('/performance_indicator/<kpi>')
 def get_kpis(kpi):
     if not performance_indicator_storage[0]:
