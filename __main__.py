@@ -279,6 +279,18 @@ def get_kpis(kpi):
         result.append(max_total_cost)
         return jsonify(result)
 
+@app.route('/get_tasks', methods=['POST'])
+def get_number_of_tasks():
+    workflow_file = request.files['workflow_file']
+    workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
+                                     werkzeug.utils.secure_filename(workflow_file.filename))
+    workflow_file.save(workflow_file_loc)
+    fixed_endpoint_parser_ip = "localhost"
+    fixed_endpoint_parser_port = "5003"
+
+    parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
+    number_of_tasks = len(parser_data['tasks'])
+    return jsonify(number_of_tasks)
 
 @app.route('/generate', methods=['POST'])
 def generate_performance_model():
@@ -303,7 +315,7 @@ def generate_performance_model():
     for vm in selected_vms:
         count += 1
         num_cpus = vm['num_cpus']
-        perf_list = [PERFORMANCE_MAPPER[num_cpus] for _ in range(len(selected_vms))]
+        perf_list = [PERFORMANCE_MAPPER[num_cpus] for _ in range(len(number_of_tasks))]
         if not pcp_input_file:
             pcp_input_file.append({'price': [PRICE_MAPPER[num_cpus]]})
             pcp_input_file.append({'performance': {'vm%s' % count: perf_list}})
