@@ -247,6 +247,8 @@ performance_indicator_storage = []
 
 @app.route('/performance_indicator/<kpi>')
 def get_kpis(kpi):
+    global performance_indicator_storage
+
     if not performance_indicator_storage[0]:
         return jsonify(False)
 
@@ -279,8 +281,10 @@ def get_kpis(kpi):
         result.append(max_total_cost)
         return jsonify(result)
 
+parser_data_temp_storage = {}
 @app.route('/get_tasks', methods=['POST'])
 def get_number_of_tasks():
+    global parser_data_temp_storage
     workflow_file = request.files['workflow_file']
     workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
                                      werkzeug.utils.secure_filename(workflow_file.filename))
@@ -289,6 +293,7 @@ def get_number_of_tasks():
     fixed_endpoint_parser_port = "5003"
 
     parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
+    parser_data_temp_storage = parser_data
     number_of_tasks = len(parser_data['tasks'])
     return jsonify(number_of_tasks)
 
@@ -300,14 +305,14 @@ def generate_performance_model():
 
     workflow_file = request.files['workflow_file']
     selected_vms = json.load(request.files['selected_vms'])
-    workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
-                                     werkzeug.utils.secure_filename(workflow_file.filename))
-    workflow_file.save(workflow_file_loc)
-    fixed_endpoint_parser_ip = "localhost"
-    fixed_endpoint_parser_port = "5003"
-
-    parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
-
+    # workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
+    #                                  werkzeug.utils.secure_filename(workflow_file.filename))
+    # workflow_file.save(workflow_file_loc)
+    # fixed_endpoint_parser_ip = "localhost"
+    # fixed_endpoint_parser_port = "5003"
+    #
+    # parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
+    parser_data = parser_data_temp_storage
     pcp_input_file = []
     number_of_tasks = len(parser_data['tasks'])
     count = 0
