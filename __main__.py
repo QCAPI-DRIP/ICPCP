@@ -205,11 +205,16 @@ def get_architecture():
     return json.dumps(MICRO_SERVICE)
 
 
+AVAILABLE_SERVERS = {'Azure': [{'id': 1, 'num_cpus': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
+                               {'id': 2, 'num_cpus': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
+                               {'id': 3, 'num_cpus': 4, 'mem_size': "7GB", 'disk_size': "120GB"}],
+                     'Amazon': [{'id': 1, 'num_cpus': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
+                                {'id': 2, 'num_cpus': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
+                                {'id': 3, 'num_cpus': 4, 'mem_size': "7GB", 'disk_size': "120GB"}],
+                     'Google Cloud': [{'id': 1, 'num_cpus': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
+                                      {'id': 2, 'num_cpus': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
+                                      {'id': 3, 'num_cpus': 4, 'mem_size': "7GB", 'disk_size': "120GB"}]}
 
-
-AVAILABLE_SERVERS = {'Azure': [{'id': 1, 'num_cpus': 1, 'mem_size' : "768MB", 'disk_size' : "20GB"}, {'id': 2, 'num_cpus': 2, 'mem_size' : "1.75GB", 'disk_size' : "40GB"}, {'id': 3, 'num_cpus': 4, 'mem_size' : "7GB", 'disk_size' : "120GB"}],
-                     'Amazon': [{'id': 1, 'num_cpus': 1, 'mem_size' : "768MB", 'disk_size' : "20GB"}, {'id': 2, 'num_cpus': 2, 'mem_size' : "1.75GB", 'disk_size' : "40GB"}, {'id': 3, 'num_cpus': 4, 'mem_size' : "7GB", 'disk_size' : "120GB"}],
-                     'Google Cloud' : [{'id': 1, 'num_cpus': 1, 'mem_size' : "768MB", 'disk_size' : "20GB"}, {'id': 2, 'num_cpus': 2, 'mem_size' : "1.75GB", 'disk_size' : "40GB"}, {'id': 3, 'num_cpus': 4, 'mem_size' : "7GB", 'disk_size' : "120GB"}]}
 
 # [VirtualMachine(1, "1", "768MB", "20GB"), VirtualMachine(2, "2", "1.75GB", "40GB"), VirtualMachine(3, "4", "7GB", "120GB")]
 @app.route('/get_vms/<provider>')
@@ -217,7 +222,29 @@ def get_available_vms(provider):
     vm_list = AVAILABLE_SERVERS[provider]
     return jsonify(vm_list)
 
+
+@app.route('/load_vm_list', methods=['POST'])
+def load_custom_list():
+    # if not request.files['file']:
+    #     abort(400)
+
+    vm_list_file = request.files['file']
+    # save the cwl file
+    file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
+                            werkzeug.utils.secure_filename(vm_list_file.filename))
+    vm_list_file.save(file_loc)
+
+    with open(file_loc, 'r') as stream:
+        data_loaded = yaml.safe_load(stream)
+
+    # os.remove(file_loc)
+
+    return jsonify(data_loaded)
+
+
 performance_indicator_storage = []
+
+
 @app.route('/performance_indicator/<kpi>')
 def get_kpis(kpi):
     if not performance_indicator_storage[0]:
@@ -251,6 +278,55 @@ def get_kpis(kpi):
         result.append(min_total_cost)
         result.append(max_total_cost)
         return jsonify(result)
+
+
+@app.route('/generate', methods=['POST'])
+def generate_performance_model():
+    # Used for generation of perfromance model
+    PERFORMANCE_MAPPER = {1: 16, 2: 8, 3: 4, 4: 2, 5: 1}
+    PRICE_MAPPER = {1: 2, 2: 4, 3: 8, 4: 16, 5: 32}
+
+    workflow_file = request.files['workflow_file']
+    selected_vms = json.load(request.files['selected_vms'])
+    workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
+                                     werkzeug.utils.secure_filename(workflow_file.filename))
+    workflow_file.save(workflow_file_loc)
+    fixed_endpoint_parser_ip = "localhost"
+    fixed_endpoint_parser_port = "5003"
+
+    parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
+
+    pcp_input_file = []
+    number_of_tasks = len(parser_data['tasks'])
+    count = 0
+
+    for vm in selected_vms:
+        count += 1
+        num_cpus = vm['num_cpus']
+        perf_list = [PERFORMANCE_MAPPER[num_cpus] for _ in range(len(selected_vms))]
+        if not pcp_input_file:
+            pcp_input_file.append({'price': [PRICE_MAPPER[num_cpus]]})
+            pcp_input_file.append({'performance': {'vm%s' % count: perf_list}})
+        else:
+            pcp_input_file[0]['price'].append(PRICE_MAPPER[num_cpus])
+            pcp_input_file[1]['performance']['vm%s' % count] = perf_list
+
+    file_name = 'input_pcp_' + uuid.uuid4().hex + '.yaml'
+    location_pcp_file = os.path.join(app.config['DOWNLOAD_FOLDER'], file_name)
+    with open(location_pcp_file, 'w') as outfile:
+        yaml.dump(pcp_input_file, outfile, default_flow_style=False, allow_unicode=True)
+
+    #TODO: remove file after sending
+
+    try:
+        return send_from_directory(app.config["DOWNLOAD_FOLDER"], filename=file_name,
+                                   as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
+
+
+
+
 
 
 @app.route('/upload', methods=['POST'])
@@ -344,13 +420,13 @@ def upload_files():
                 parser_data['icpcp_params'] = icpcp_parameters
 
                 vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
-                vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
+                # vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
 
                 servers_icpcp = get_servers(vm_data)
-                servers_icpcp_greedy_repair = get_servers(vm_data2)
+                # servers_icpcp_greedy_repair = get_servers(vm_data2)
 
                 tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
-                tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair, microservices=True)
+                # tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair, microservices=True)
                 performance_indicator_storage.append(
                     dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
                 return jsonify(True)
@@ -572,6 +648,7 @@ def tosca_url():
     #     os.remove(price_file_name)
 
     # send generated tosca description to client
+
     return redirect(url_for('uploaded_file', filename=tosca_file_name))
 
 
