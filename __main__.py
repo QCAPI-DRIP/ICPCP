@@ -282,13 +282,15 @@ def get_kpis(kpi):
         return jsonify(result)
 
 parser_data_temp_storage = {}
+workflow_file_loc_temp_storage = ""
 @app.route('/get_tasks', methods=['POST'])
 def get_number_of_tasks():
-    global parser_data_temp_storage
+    global parser_data_temp_storage, workflow_file_loc_temp_storage
     workflow_file = request.files['workflow_file']
     workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
                                      werkzeug.utils.secure_filename(workflow_file.filename))
     workflow_file.save(workflow_file_loc)
+    workflow_file_loc_temp_storage = workflow_file_loc
     fixed_endpoint_parser_ip = "localhost"
     fixed_endpoint_parser_port = "5003"
 
@@ -303,7 +305,7 @@ def generate_performance_model():
     PERFORMANCE_MAPPER = {1: 16, 2: 8, 3: 4, 4: 2, 5: 1}
     PRICE_MAPPER = {1: 2, 2: 4, 3: 8, 4: 16, 5: 32}
 
-    workflow_file = request.files['workflow_file']
+    # workflow_file = request.files['workflow_file']
     selected_vms = json.load(request.files['selected_vms'])
     # workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
     #                                  werkzeug.utils.secure_filename(workflow_file.filename))
@@ -320,7 +322,7 @@ def generate_performance_model():
     for vm in selected_vms:
         count += 1
         num_cpus = vm['num_cpus']
-        perf_list = [PERFORMANCE_MAPPER[num_cpus] for _ in range(len(number_of_tasks))]
+        perf_list = [PERFORMANCE_MAPPER[num_cpus] for _ in range(number_of_tasks)]
         if not pcp_input_file:
             pcp_input_file.append({'price': [PRICE_MAPPER[num_cpus]]})
             pcp_input_file.append({'performance': {'vm%s' % count: perf_list}})
@@ -346,13 +348,20 @@ def generate_performance_model():
 
 
 
-@app.route('/upload', methods=['POST'])
-def upload_files():
+@app.route('/upload/<deadline>', methods=['POST'])
+def upload_files(deadline):
     if request.method == 'POST':
+        deadline = int(deadline)
         # if 'file' not in request.files:
         #     return redirect(request.url)
         added_endpoints = False
-        workflow_file = request.files['workflow_file']
+        if not workflow_file_loc_temp_storage:
+            workflow_file = request.files['workflow_file']
+            workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
+                                             werkzeug.utils.secure_filename(workflow_file.filename))
+            workflow_file.save(workflow_file_loc)
+        else:
+            workflow_file_loc = workflow_file_loc_temp_storage
         input_file = request.files['input_file']
 
         # configure this if you dont want to use endpoints from endpointregistry
@@ -368,10 +377,9 @@ def upload_files():
         fixed_endpoint_planner2_ip = "localhost"
         fixed_endpoint_planner2_port = "5005"
 
-        workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
-                                         werkzeug.utils.secure_filename(workflow_file.filename))
+
         input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename))
-        workflow_file.save(workflow_file_loc)
+
         input_file.save(input_file_loc)
 
         # microservice based
@@ -379,7 +387,6 @@ def upload_files():
             with open(input_file_loc, 'r') as stream:
                 data_loaded = yaml.safe_load(stream)
                 price = data_loaded[0]["price"]
-                deadline = data_loaded[2]["deadline"]
                 performance_with_vm = data_loaded[1]["performance"]
                 performance = []
                 for key, value in performance_with_vm.items():
