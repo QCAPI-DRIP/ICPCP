@@ -3,7 +3,8 @@ import uuid
 
 import requests
 import werkzeug.utils
-from flask import Flask, request, send_from_directory, abort, redirect, url_for, jsonify
+from flask import Flask, request, send_from_directory, abort, redirect, url_for, jsonify, session, Response, make_response
+from flask_session import Session
 from flask_cors import CORS
 import yaml
 import requests
@@ -28,8 +29,13 @@ app.config['DOWNLOAD_FOLDER'] = os.path.join(os.getcwd(), "planning_output")
 app.config['MAX_CONTENT_PATH'] = 1000000
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 ALLOWED_EXTENSIONS = {'cwl', 'yaml'}
+app.secret_key = "test"
+SESSION_TYPE = 'filesystem'
+app.config.from_object(__name__)
+Session(app)
 
-CORS(app, resources={r'/*': {'origins': '*'}})
+
+CORS(app)
 CURRENT_DIR = os.path.dirname(__file__)
 
 
@@ -191,6 +197,12 @@ def get_servers(vm_data):
     return servers, total_cost, highest_end_time
 
 
+def setHttpHeaders(input):
+    json = jsonify(input)
+    resp = make_response(json)
+    resp.headers['Access-Control-Allow-Credentials'] = 'true'
+    return resp
+
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     try:
@@ -220,7 +232,8 @@ AVAILABLE_SERVERS = {'Azure': [{'id': 1, 'num_cpus': 1, 'mem_size': "768MB", 'di
 @app.route('/get_vms/<provider>')
 def get_available_vms(provider):
     vm_list = AVAILABLE_SERVERS[provider]
-    return jsonify(vm_list)
+    resp = setHttpHeaders(vm_list)
+    return resp
 
 
 @app.route('/load_vm_list', methods=['POST'])
@@ -239,18 +252,22 @@ def load_custom_list():
 
     # os.remove(file_loc)
 
-    return jsonify(data_loaded)
+    resp = setHttpHeaders(data_loaded)
+    return resp
 
 
-performance_indicator_storage = []
+# performance_indicator_storage = []
 
 
 @app.route('/performance_indicator/<kpi>')
 def get_kpis(kpi):
-    global performance_indicator_storage
+    # global performance_indicator_storage
+    if 'performance_indicator_storage' in session:
+        performance_indicator_storage = session['performance_indicator_storage']
 
     if not performance_indicator_storage[0]:
-        return jsonify(False)
+        resp = setHttpHeaders(False)
+        return resp
 
     result = []
     if kpi == 'makespan':
@@ -259,13 +276,15 @@ def get_kpis(kpi):
         if (min_makespan['tosca_file_name'] == max_makespan['tosca_file_name']):
             min_makespan['id'] = "Lowest and highest makespan"
             result.append(min_makespan)
-            return jsonify(result)
+            resp = setHttpHeaders(result)
+            return resp
 
         min_makespan['id'] = "Lowest makespan"
         result.append(min_makespan)
         max_makespan['id'] = "Highest makespan"
         result.append(max_makespan)
-        return jsonify(result)
+        resp = setHttpHeaders(result)
+        return resp
 
     if kpi == 'total_cost':
         min_total_cost = min(performance_indicator_storage, key=lambda x: x['total_cost'])
@@ -273,31 +292,39 @@ def get_kpis(kpi):
         if (min_total_cost['tosca_file_name'] == max_total_cost['tosca_file_name']):
             min_total_cost['id'] = "Lowest lost and highest cost"
             result.append(max_total_cost)
-            return jsonify(result)
+            resp = setHttpHeaders(result)
+            return resp
 
         min_total_cost['id'] = "Lowest cost"
         max_total_cost['id'] = "Highest cost"
         result.append(min_total_cost)
         result.append(max_total_cost)
-        return jsonify(result)
+        resp = setHttpHeaders(result)
+        return resp
 
-parser_data_temp_storage = {}
-workflow_file_loc_temp_storage = ""
+
+# parser_data_temp_storage = {}
+# workflow_file_loc_temp_storage = ""
 @app.route('/get_tasks', methods=['POST'])
 def get_number_of_tasks():
-    global parser_data_temp_storage, workflow_file_loc_temp_storage
+    # global parser_data_temp_storage, workflow_file_loc_temp_storage
     workflow_file = request.files['workflow_file']
     workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
                                      werkzeug.utils.secure_filename(workflow_file.filename))
     workflow_file.save(workflow_file_loc)
-    workflow_file_loc_temp_storage = workflow_file_loc
+    session['workflow_file_loc_temp_storage'] = workflow_file_loc
+    # workflow_file_loc_temp_storage = workflow_file_loc
     fixed_endpoint_parser_ip = "localhost"
     fixed_endpoint_parser_port = "5003"
 
     parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
-    parser_data_temp_storage = parser_data
+    session['parser_data_temp_storage'] = parser_data
+    # parser_data_temp_storage = parser_data
     number_of_tasks = len(parser_data['tasks'])
-    return jsonify(number_of_tasks)
+    resp = setHttpHeaders(number_of_tasks)
+    return resp
+
+
 
 @app.route('/generate', methods=['POST'])
 def generate_performance_model():
@@ -314,7 +341,8 @@ def generate_performance_model():
     # fixed_endpoint_parser_port = "5003"
     #
     # parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
-    parser_data = parser_data_temp_storage
+    if 'parser_data_temp_storage' in session:
+        parser_data = session['parser_data_temp_storage']
     pcp_input_file = []
     number_of_tasks = len(parser_data['tasks'])
     count = 0
@@ -335,17 +363,13 @@ def generate_performance_model():
     with open(location_pcp_file, 'w') as outfile:
         yaml.dump(pcp_input_file, outfile, default_flow_style=False, allow_unicode=True)
 
-    #TODO: remove file after sending
+    # TODO: remove file after sending
 
     try:
         return send_from_directory(app.config["DOWNLOAD_FOLDER"], filename=file_name,
                                    as_attachment=True)
     except FileNotFoundError:
         abort(404)
-
-
-
-
 
 
 @app.route('/upload/<deadline>', methods=['POST'])
@@ -355,13 +379,14 @@ def upload_files(deadline):
         # if 'file' not in request.files:
         #     return redirect(request.url)
         added_endpoints = False
-        if not workflow_file_loc_temp_storage:
+        if 'workflow_file_loc_temp_storage' in session:
+            workflow_file_loc = session['workflow_file_loc_temp_storage']
+
+        else:
             workflow_file = request.files['workflow_file']
             workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
                                              werkzeug.utils.secure_filename(workflow_file.filename))
             workflow_file.save(workflow_file_loc)
-        else:
-            workflow_file_loc = workflow_file_loc_temp_storage
         input_file = request.files['input_file']
 
         # configure this if you dont want to use endpoints from endpointregistry
@@ -376,7 +401,6 @@ def upload_files(deadline):
         fixed_endpoint_planner_port = "5002"
         fixed_endpoint_planner2_ip = "localhost"
         fixed_endpoint_planner2_port = "5005"
-
 
         input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename))
 
@@ -451,9 +475,12 @@ def upload_files(deadline):
 
                 tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
                 # tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair, microservices=True)
-                performance_indicator_storage.append(
-                    dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
-                return jsonify(True)
+                session['performance_indicator_storage'] = dict(tosca_file_name=tosca_file_icpcp,
+                                                                total_cost=servers_icpcp[1], makespan=servers_icpcp[2])
+                # performance_indicator_storage.append(
+                #     dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
+                resp = setHttpHeaders(True)
+                return resp
 
             # return redirect(url_for('uploaded_file', filename=tosca_file_icpcp))
 
@@ -634,7 +661,8 @@ def compare_performance():
         data_min_combined['costs'] = str(min_combined[0])
         data_min_combined['makespan'] = str(min_combined[1])
         filtered_file_names.append(data_min_combined)
-        return jsonify(filtered_file_names)
+        resp = setHttpHeaders(filtered_file_names)
+        return resp
 
         # tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc)
         # return redirect(url_for('uploaded_file', filename=tosca_file_name))
@@ -686,5 +714,5 @@ if __name__ == '__main__':
         # request_metadata()
     else:
         port = int(os.environ.get('PORT', 5001))
-        app.run(host='0.0.0.0', port=port, debug=False)
+        app.run(host='0.0.0.0', port=port, debug=True)
         # test_cluster()
