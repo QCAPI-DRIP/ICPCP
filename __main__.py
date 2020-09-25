@@ -206,8 +206,11 @@ def setHttpHeaders(input):
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     try:
-        return send_from_directory(app.config["DOWNLOAD_FOLDER"], filename=filename + ".yaml",
-                                   as_attachment=True)
+        resp = make_response(send_from_directory(app.config["DOWNLOAD_FOLDER"], filename=filename + ".yaml",
+                                   as_attachment=True))
+        resp.headers['Access-Control-Allow-Credentials'] = 'true'
+        return resp
+
     except FileNotFoundError:
         abort(404)
 
@@ -265,7 +268,7 @@ def get_kpis(kpi):
     if 'performance_indicator_storage' in session:
         performance_indicator_storage = session['performance_indicator_storage']
 
-    if not performance_indicator_storage[0]:
+    else:
         resp = setHttpHeaders(False)
         return resp
 
@@ -290,7 +293,7 @@ def get_kpis(kpi):
         min_total_cost = min(performance_indicator_storage, key=lambda x: x['total_cost'])
         max_total_cost = max(performance_indicator_storage, key=lambda x: x['total_cost'])
         if (min_total_cost['tosca_file_name'] == max_total_cost['tosca_file_name']):
-            min_total_cost['id'] = "Lowest lost and highest cost"
+            min_total_cost['id'] = "Lowest cost and highest cost"
             result.append(max_total_cost)
             resp = setHttpHeaders(result)
             return resp
@@ -366,8 +369,11 @@ def generate_performance_model():
     # TODO: remove file after sending
 
     try:
-        return send_from_directory(app.config["DOWNLOAD_FOLDER"], filename=file_name,
-                                   as_attachment=True)
+        resp = make_response(send_from_directory(app.config["DOWNLOAD_FOLDER"], filename=file_name,
+                                   as_attachment=True))
+        resp.headers['Access-Control-Allow-Credentials'] = 'true'
+        return resp
+
     except FileNotFoundError:
         abort(404)
 
@@ -464,7 +470,10 @@ def upload_files(deadline):
                             tosca_file = generate_tosca(servers, microservices=True)
                             tosca_files.append(tosca_file)
             else:
-                parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
+                if 'parser_data_temp_storage' in session:
+                    parser_data = session['parser_data_temp_storage']
+                else:
+                    parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
                 parser_data['icpcp_params'] = icpcp_parameters
 
                 vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
@@ -475,8 +484,14 @@ def upload_files(deadline):
 
                 tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
                 # tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair, microservices=True)
-                session['performance_indicator_storage'] = dict(tosca_file_name=tosca_file_icpcp,
-                                                                total_cost=servers_icpcp[1], makespan=servers_icpcp[2])
+
+                #add found solutions to session data
+                performance_indicator_storage = []
+                performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp,
+                                                                total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
+
+
+                session['performance_indicator_storage'] = performance_indicator_storage
                 # performance_indicator_storage.append(
                 #     dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
                 resp = setHttpHeaders(True)
