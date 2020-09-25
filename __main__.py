@@ -477,18 +477,20 @@ def upload_files(deadline):
                 parser_data['icpcp_params'] = icpcp_parameters
 
                 vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
-                # vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
+                vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
 
                 servers_icpcp = get_servers(vm_data)
-                # servers_icpcp_greedy_repair = get_servers(vm_data2)
+                servers_icpcp_greedy_repair = get_servers(vm_data2)
 
                 tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
-                # tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair, microservices=True)
+                tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair[0], microservices=True)
 
                 #add found solutions to session data
                 performance_indicator_storage = []
                 performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp,
                                                                 total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
+                performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp_greedy_repair,
+                                                          total_cost=servers_icpcp_greedy_repair[1], makespan=servers_icpcp_greedy_repair[2]))
 
 
                 session['performance_indicator_storage'] = performance_indicator_storage
