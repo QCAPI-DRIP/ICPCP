@@ -663,7 +663,7 @@ def compare_performance():
         data_min_makespan = {}
         min_makespan = min(performance_list, key=lambda item: item[1])
         index_min_make_span = performance_list.index(min(performance_list, key=lambda item: item[1]))
-        file_name2 = file_names[index_min_total_costs]
+        file_name2 = file_names[index_min_make_span]
         data_min_makespan['id'] = "Lowest makespan"
         data_min_makespan['name'] = file_name2
         data_min_makespan['costs'] = str(min_makespan[0])
@@ -674,7 +674,7 @@ def compare_performance():
         data_min_combined = {}
         min_combined = min(performance_list, key=lambda item: item[0] + item[1])
         index_min_combined = performance_list.index(min(performance_list, key=lambda item: item[0] + item[1]))
-        file_name3 = file_names[index_min_total_costs]
+        file_name3 = file_names[index_min_combined]
         data_min_combined['id'] = "Lowest total costs + makespan"
         data_min_combined['name'] = file_name3
         data_min_combined['costs'] = str(min_combined[0])
