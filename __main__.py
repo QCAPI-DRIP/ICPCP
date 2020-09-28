@@ -105,7 +105,9 @@ def get_iaas_solution(workflow_file_path, input_file_path, save=None, microservi
 
     if save == None:
         for i in range(0, len(servers)):
-            make_span += servers[i].get_duration()
+            end_time = servers[i].vm_end
+            if end_time > make_span:
+                make_span = end_time
             total_cost += servers[i].get_cost()
 
         print("Total costs = {}".format(total_cost))
