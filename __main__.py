@@ -320,8 +320,8 @@ def get_number_of_tasks():
     workflow_file.save(workflow_file_loc)
     session['workflow_file_loc_temp_storage'] = workflow_file_loc
     # workflow_file_loc_temp_storage = workflow_file_loc
-    fixed_endpoint_parser_ip = "localhost"
-    fixed_endpoint_parser_port = "5003"
+    # fixed_endpoint_parser_ip = "localhost"
+    # fixed_endpoint_parser_port = "5003"
 
     parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
     session['parser_data_temp_storage'] = parser_data
@@ -403,19 +403,6 @@ def upload_files(deadline):
         # fixed_endpoint_parser_port = "5003"
         # fixed_endpoint_planner_ip = "52.224.203.30"
         # fixed_endpoint_planner_port = "5002"
-
-        # read config file
-        parser = ConfigParser()
-        config_file = os.path.join(os.getcwd(), "config.ini")
-        parser.read(config_file)
-
-        #set endpoints
-        fixed_endpoint_parser_ip = parser.get('fixed_endpoint_parser', 'host')
-        fixed_endpoint_parser_port = parser.get('fixed_endpoint_parser', 'port')
-        fixed_endpoint_planner_ip = parser.get('fixed_endpoint_planner', 'host')
-        fixed_endpoint_planner_port = parser.get('fixed_endpoint_planner', 'port')
-        fixed_endpoint_planner2_ip = parser.get('fixed_endpoint_planner2', 'host')
-        fixed_endpoint_planner2_port = parser.get('fixed_endpoint_planner2', 'port')
 
         # fixed_endpoint_parser_ip = "localhost"
         # fixed_endpoint_parser_port = "5003"
@@ -739,6 +726,20 @@ def tosca_url():
 
 if __name__ == '__main__':
     run_without_flask = False
+    # read config file
+    parser = ConfigParser()
+    config_file = os.path.join(os.getcwd(), "config.ini")
+    parser.read(config_file)
+
+    # set endpoints
+    fixed_endpoint_parser_ip = parser.get('fixed_endpoint_parser', 'host')
+    fixed_endpoint_parser_port = parser.get('fixed_endpoint_parser', 'port')
+    fixed_endpoint_planner_ip = parser.get('fixed_endpoint_planner', 'host')
+    fixed_endpoint_planner_port = parser.get('fixed_endpoint_planner', 'port')
+    fixed_endpoint_planner2_ip = parser.get('fixed_endpoint_planner2', 'host')
+    fixed_endpoint_planner2_port = parser.get('fixed_endpoint_planner2', 'port')
+
+
     if run_without_flask:
         input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
         workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
