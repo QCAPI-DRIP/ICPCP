@@ -415,6 +415,9 @@ def upload_files(deadline):
 
         else:
             workflow_file = request.files['workflow_file']
+            if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                os.makedirs(app.config['UPLOAD_FOLDER'])
+
             workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
                                              werkzeug.utils.secure_filename(workflow_file.filename))
             workflow_file.save(workflow_file_loc)
