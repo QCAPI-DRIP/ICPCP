@@ -30,6 +30,11 @@ app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), "planning_input")
 app.config['DOWNLOAD_FOLDER'] = os.path.join(os.getcwd(), "planning_output")
 app.config['MAX_CONTENT_PATH'] = 1000000
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+if not os.path.exists(app.config['DOWNLOAD_FOLDER']):
+    os.makedirs(app.config['DOWNLOAD_FOLDER'])
+
 ALLOWED_EXTENSIONS = {'cwl', 'yaml'}
 app.secret_key = "test"
 SESSION_TYPE = 'filesystem'
@@ -384,8 +389,6 @@ def generate_performance_model():
             pcp_input_file[1]['performance']['vm%s' % count] = perf_list
 
     file_name = 'input_pcp_' + uuid.uuid4().hex + '.yaml'
-    if not os.path.exists(app.config['DOWNLOAD_FOLDER']):
-        os.makedirs(app.config['DOWNLOAD_FOLDER'])
 
     location_pcp_file = os.path.join(app.config['DOWNLOAD_FOLDER'], file_name)
     with open(location_pcp_file, 'w') as outfile:
@@ -412,14 +415,13 @@ def upload_files(deadline):
         added_endpoints = False
         if 'workflow_file_loc_temp_storage' in session:
             workflow_file_loc = session['workflow_file_loc_temp_storage']
+            logger.info("workflow_file_loc: " + str(workflow_file_loc))
 
         else:
             workflow_file = request.files['workflow_file']
-            if not os.path.exists(app.config['UPLOAD_FOLDER']):
-                os.makedirs(app.config['UPLOAD_FOLDER'])
-
             workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
                                              werkzeug.utils.secure_filename(workflow_file.filename))
+            logger.info("workflow_file_loc: " + str(workflow_file_loc))
             workflow_file.save(workflow_file_loc)
         input_file = request.files['input_file']
 
@@ -438,8 +440,9 @@ def upload_files(deadline):
 
         input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename))
 
-        input_file.save(input_file_loc)
 
+        input_file.save(input_file_loc)
+        logger.info("input_file_loc saved at : " + str(input_file_loc))
         # microservice based
         if MICRO_SERVICE:
             with open(input_file_loc, 'r') as stream:
@@ -457,6 +460,9 @@ def upload_files(deadline):
                 # find out what microservices are availablea
                 parsers_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
                 planners_file_loc = os.path.join(ENDPOINTS_PATH, 'planners.yaml')
+
+                logger.info("parsers_file_loc: " + str(parsers_file_loc))
+                logger.info("planners_file_loc: " + str(planners_file_loc))
 
                 with open(parsers_file_loc, 'r') as stream:
                     try:
@@ -508,9 +514,12 @@ def upload_files(deadline):
 
                 vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
                 vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
+                logger.info("vm_data: " + str(vm_data))
 
                 servers_icpcp = get_servers(vm_data)
                 servers_icpcp_greedy_repair = get_servers(vm_data2)
+
+                logger.info("servers_icpcp_greedy_repair: " + str(servers_icpcp_greedy_repair))
 
                 tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
                 tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair[0], microservices=True)
@@ -524,6 +533,7 @@ def upload_files(deadline):
 
 
                 session['performance_indicator_storage'] = performance_indicator_storage
+                logger.info("performance_indicator_storage: " + str(performance_indicator_storage))
                 # performance_indicator_storage.append(
                 #     dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
                 resp = setHttpHeaders(True)
