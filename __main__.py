@@ -150,7 +150,8 @@ def run_naive_planner(workflow_file_path, input_file_path):
 
 def request_metadata(endpoint, port, workflow_file=None):
     """Request metadata from the parsers"""
-    request_url = "http://{endpoint}:{port}/send_file".format(endpoint=endpoint, port=port)
+    request_url = "http://{endpoint}:{port}/MasterMinded/Parsersv2/1.0.0/send_file".format(endpoint=endpoint, port=port)
+    # request_url = "http://{endpoint}:{port}/send_file".format(endpoint=endpoint, port=port)
     # request_url = "http://10.0.125.227:5003/send_file"
     # request_url = "http://cwl-parser-service.default:32401/send_file"
     if workflow_file is None:
@@ -326,7 +327,10 @@ def get_number_of_tasks():
     parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
     session['parser_data_temp_storage'] = parser_data
     # parser_data_temp_storage = parser_data
-    number_of_tasks = len(parser_data['tasks'])
+    if isinstance(parser_data,str):
+        parser_data = json.loads(parser_data)
+    tasks = parser_data['tasks']
+    number_of_tasks = len(tasks)
     resp = setHttpHeaders(number_of_tasks)
     return resp
 
@@ -350,6 +354,8 @@ def generate_performance_model():
     if 'parser_data_temp_storage' in session:
         parser_data = session['parser_data_temp_storage']
     pcp_input_file = []
+    if isinstance(parser_data,str):
+        parser_data = json.loads(parser_data)
     number_of_tasks = len(parser_data['tasks'])
     count = 0
 
@@ -365,6 +371,9 @@ def generate_performance_model():
             pcp_input_file[1]['performance']['vm%s' % count] = perf_list
 
     file_name = 'input_pcp_' + uuid.uuid4().hex + '.yaml'
+    if not os.path.exists(app.config['DOWNLOAD_FOLDER']):
+        os.makedirs(app.config['DOWNLOAD_FOLDER'])
+
     location_pcp_file = os.path.join(app.config['DOWNLOAD_FOLDER'], file_name)
     with open(location_pcp_file, 'w') as outfile:
         yaml.dump(pcp_input_file, outfile, default_flow_style=False, allow_unicode=True)
@@ -477,6 +486,8 @@ def upload_files(deadline):
                     parser_data = session['parser_data_temp_storage']
                 else:
                     parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
+                if isinstance(parser_data, str):
+                    parser_data = json.loads(parser_data)
                 parser_data['icpcp_params'] = icpcp_parameters
 
                 vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
@@ -514,14 +525,14 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
     added_endpoints = False
 
     # configure this if you dont want to use endpoints from endpointregistry
-    fixed_endpoint_parser_ip = "localhost"
-    fixed_endpoint_parser_port = "5003"
-
-    fixed_endpoint_planner_ip = "localhost"
-    fixed_endpoint_planner_port = "5002"
-
-    fixed_endpoint_planner2_ip = "localhost"
-    fixed_endpoint_planner2_port = "5004"
+    # fixed_endpoint_parser_ip = "localhost"
+    # fixed_endpoint_parser_port = "5003"
+    #
+    # fixed_endpoint_planner_ip = "localhost"
+    # fixed_endpoint_planner_port = "5002"
+    #
+    # fixed_endpoint_planner2_ip = "localhost"
+    # fixed_endpoint_planner2_port = "5004"
 
     # microservice based
     if MICRO_SERVICE:
