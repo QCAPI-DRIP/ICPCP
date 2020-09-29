@@ -1,6 +1,6 @@
 import os
 import uuid
-
+import sys
 import requests
 import logging
 import werkzeug.utils
@@ -408,143 +408,153 @@ def generate_performance_model():
 
 @app.route('/upload/<deadline>', methods=['POST'])
 def upload_files(deadline):
-    if request.method == 'POST':
-        deadline = int(deadline)
-        # if 'file' not in request.files:
-        #     return redirect(request.url)
-        added_endpoints = False
-        if 'workflow_file_loc_temp_storage' in session:
-            workflow_file_loc = session['workflow_file_loc_temp_storage']
-            logger.info("workflow_file_loc: " + str(workflow_file_loc))
+    try:
+        if request.method == 'POST':
+            deadline = int(deadline)
+            # if 'file' not in request.files:
+            #     return redirect(request.url)
+            added_endpoints = False
+            if 'workflow_file_loc_temp_storage' in session:
+                workflow_file_loc = session['workflow_file_loc_temp_storage']
+                logger.info("workflow_file_loc: " + str(workflow_file_loc))
 
-        else:
-            workflow_file = request.files['workflow_file']
-            workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
-                                             werkzeug.utils.secure_filename(workflow_file.filename))
-            logger.info("workflow_file_loc: " + str(workflow_file_loc))
-            workflow_file.save(workflow_file_loc)
-        input_file = request.files['input_file']
+            else:
+                workflow_file = request.files['workflow_file']
+                workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
+                                                 werkzeug.utils.secure_filename(workflow_file.filename))
+                logger.info("workflow_file_loc: " + str(workflow_file_loc))
+                workflow_file.save(workflow_file_loc)
+            input_file = request.files['input_file']
 
-        # configure this if you dont want to use endpoints from endpointregistry
-        # fixed_endpoint_parser_ip = "52.224.203.20"
-        # fixed_endpoint_parser_port = "5003"
-        # fixed_endpoint_planner_ip = "52.224.203.30"
-        # fixed_endpoint_planner_port = "5002"
+            # configure this if you dont want to use endpoints from endpointregistry
+            # fixed_endpoint_parser_ip = "52.224.203.20"
+            # fixed_endpoint_parser_port = "5003"
+            # fixed_endpoint_planner_ip = "52.224.203.30"
+            # fixed_endpoint_planner_port = "5002"
 
-        # fixed_endpoint_parser_ip = "localhost"
-        # fixed_endpoint_parser_port = "5003"
-        # fixed_endpoint_planner_ip = "localhost"
-        # fixed_endpoint_planner_port = "5002"
-        # fixed_endpoint_planner2_ip = "localhost"
-        # fixed_endpoint_planner2_port = "5005"
+            # fixed_endpoint_parser_ip = "localhost"
+            # fixed_endpoint_parser_port = "5003"
+            # fixed_endpoint_planner_ip = "localhost"
+            # fixed_endpoint_planner_port = "5002"
+            # fixed_endpoint_planner2_ip = "localhost"
+            # fixed_endpoint_planner2_port = "5005"
 
-        input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename))
+            input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename))
+            input_file.save(input_file_loc)
+            # microservice based
+            logger.info("MICRO_SERVICE: " + str(MICRO_SERVICE))
+            if MICRO_SERVICE:
+                with open(input_file_loc, 'r') as stream:
+                    data_loaded = yaml.safe_load(stream)
+                    price = data_loaded[0]["price"]
+                    performance_with_vm = data_loaded[1]["performance"]
+                    performance = []
+                    for key, value in performance_with_vm.items():
+                        performance.append(value)
 
+                icpcp_parameters = {'price': price, 'performance': performance, 'deadline': deadline}
 
-        input_file.save(input_file_loc)
-        logger.info("input_file_loc saved at : " + str(input_file_loc))
-        # microservice based
-        if MICRO_SERVICE:
-            with open(input_file_loc, 'r') as stream:
-                data_loaded = yaml.safe_load(stream)
-                price = data_loaded[0]["price"]
-                performance_with_vm = data_loaded[1]["performance"]
-                performance = []
-                for key, value in performance_with_vm.items():
-                    performance.append(value)
+                # search for available endpoints
+                logger.info("added_endpoints: " + str(added_endpoints))
+                if added_endpoints:
+                    # find out what microservices are availablea
+                    parsers_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
+                    planners_file_loc = os.path.join(ENDPOINTS_PATH, 'planners.yaml')
 
-            icpcp_parameters = {'price': price, 'performance': performance, 'deadline': deadline}
+                    logger.info("parsers_file_loc: " + str(parsers_file_loc))
+                    logger.info("planners_file_loc: " + str(planners_file_loc))
 
-            # search for available endpoints
-            if added_endpoints:
-                # find out what microservices are availablea
-                parsers_file_loc = os.path.join(ENDPOINTS_PATH, 'parsers.yaml')
-                planners_file_loc = os.path.join(ENDPOINTS_PATH, 'planners.yaml')
+                    with open(parsers_file_loc, 'r') as stream:
+                        try:
+                            parsers_data = yaml.safe_load(stream)
+                        except yaml.YAMLError as exc:
+                            print(exc)
 
-                logger.info("parsers_file_loc: " + str(parsers_file_loc))
-                logger.info("planners_file_loc: " + str(planners_file_loc))
+                    with open(planners_file_loc, 'r') as stream:
+                        try:
+                            planners_data = yaml.safe_load(stream)
+                        except yaml.YAMLError as exc:
+                            print(exc)
 
-                with open(parsers_file_loc, 'r') as stream:
-                    try:
-                        parsers_data = yaml.safe_load(stream)
-                    except yaml.YAMLError as exc:
-                        print(exc)
+                    parser_endpoints = parsers_data['.cwl']
+                    planner_endpoints = list(planners_data.keys())
+                    logger.info("parser_endpoints: " + str(parser_endpoints))
+                    # list of generated tosca files
+                    tosca_files = []
 
-                with open(planners_file_loc, 'r') as stream:
-                    try:
-                        planners_data = yaml.safe_load(stream)
-                    except yaml.YAMLError as exc:
-                        print(exc)
+                    # send workflow file to each available parser that supports its format
+                    for (endpoint, port) in parser_endpoints:
+                        parser_data = request_metadata(endpoint, port, workflow_file_loc)
+                        parser_data['icpcp_params'] = icpcp_parameters
+                        logger.info("parser_data: " + str(parser_data))
 
-                parser_endpoints = parsers_data['.cwl']
-                planner_endpoints = list(planners_data.keys())
+                        # send the parser output to each available planner
+                        for (endpoint_planner, port_planner) in planner_endpoints:
+                            vm_data = request_vm_sizes(endpoint_planner, port_planner, parser_data)
+                            servers = []
+                            logger.info("vm_data: " + str(vm_data))
+                            for vm in vm_data:
+                                tasks = vm['tasks']
+                                vm_start = vm['vm_start']
+                                vm_end = vm['vm_end']
+                                properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'],
+                                              'mem_size': vm['mem_size']}
+                                server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                                server.properties = properties
+                                server.task_names = tasks
+                                servers.append(server)
+                                tosca_file = generate_tosca(servers, microservices=True)
+                                tosca_files.append(tosca_file)
+                else:
+                    if 'parser_data_temp_storage' in session:
+                        parser_data = session['parser_data_temp_storage']
+                        logger.info("parser_data: " + str(parser_data))
+                    else:
+                        parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
 
-                # list of generated tosca files
-                tosca_files = []
-
-                # send workflow file to each available parser that supports its format
-                for (endpoint, port) in parser_endpoints:
-                    parser_data = request_metadata(endpoint, port, workflow_file_loc)
+                    if isinstance(parser_data, str):
+                        parser_data = json.loads(parser_data)
                     parser_data['icpcp_params'] = icpcp_parameters
 
-                    # send the parser output to each available planner
-                    for (endpoint_planner, port_planner) in planner_endpoints:
-                        vm_data = request_vm_sizes(endpoint_planner, port_planner, parser_data)
-                        servers = []
-                        for vm in vm_data:
-                            tasks = vm['tasks']
-                            vm_start = vm['vm_start']
-                            vm_end = vm['vm_end']
-                            properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'],
-                                          'mem_size': vm['mem_size']}
-                            server = NewInstance(0, 0, vm_start, vm_end, tasks)
-                            server.properties = properties
-                            server.task_names = tasks
-                            servers.append(server)
-                            tosca_file = generate_tosca(servers, microservices=True)
-                            tosca_files.append(tosca_file)
+                    vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
+                    vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
+                    logger.info("vm_data: " + str(vm_data))
+
+                    servers_icpcp = get_servers(vm_data)
+                    servers_icpcp_greedy_repair = get_servers(vm_data2)
+
+                    logger.info("servers_icpcp_greedy_repair: " + str(servers_icpcp_greedy_repair))
+
+                    tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
+                    tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair[0], microservices=True)
+
+                    #add found solutions to session data
+                    performance_indicator_storage = []
+                    performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp,
+                                                                    total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
+                    performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp_greedy_repair,
+                                                              total_cost=servers_icpcp_greedy_repair[1], makespan=servers_icpcp_greedy_repair[2]))
+
+
+                    session['performance_indicator_storage'] = performance_indicator_storage
+                    logger.info("performance_indicator_storage: " + str(performance_indicator_storage))
+                    # performance_indicator_storage.append(
+                    #     dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
+                    resp = setHttpHeaders(True)
+                    return resp
+
+                # return redirect(url_for('uploaded_file', filename=tosca_file_icpcp))
+
+            # non microservice based
             else:
-                if 'parser_data_temp_storage' in session:
-                    parser_data = session['parser_data_temp_storage']
-                else:
-                    parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
-                if isinstance(parser_data, str):
-                    parser_data = json.loads(parser_data)
-                parser_data['icpcp_params'] = icpcp_parameters
-
-                vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
-                vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
-                logger.info("vm_data: " + str(vm_data))
-
-                servers_icpcp = get_servers(vm_data)
-                servers_icpcp_greedy_repair = get_servers(vm_data2)
-
-                logger.info("servers_icpcp_greedy_repair: " + str(servers_icpcp_greedy_repair))
-
-                tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
-                tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair[0], microservices=True)
-
-                #add found solutions to session data
-                performance_indicator_storage = []
-                performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp,
-                                                                total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
-                performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp_greedy_repair,
-                                                          total_cost=servers_icpcp_greedy_repair[1], makespan=servers_icpcp_greedy_repair[2]))
-
-
-                session['performance_indicator_storage'] = performance_indicator_storage
-                logger.info("performance_indicator_storage: " + str(performance_indicator_storage))
-                # performance_indicator_storage.append(
-                #     dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
-                resp = setHttpHeaders(True)
-                return resp
-
-            # return redirect(url_for('uploaded_file', filename=tosca_file_icpcp))
-
-        # non microservice based
-        else:
-            tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
-            return redirect(url_for('uploaded_file', filename=tosca_file_name))
+                tosca_file_name = get_iaas_solution(workflow_file_loc, input_file_loc, save=True)
+                logger.info("tosca_file_name: " + str(tosca_file_name))
+                return redirect(url_for('uploaded_file', filename=tosca_file_name))
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
+        logger.error(str(e))
 
 
 def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
