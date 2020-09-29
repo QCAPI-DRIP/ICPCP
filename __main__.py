@@ -14,6 +14,7 @@ from legacy_code.tosca_generator import ToscaGenerator
 import legacy_code.naive_planner as plan
 from legacy_code.NewInstance import NewInstance
 from definitions import ENDPOINTS_PATH
+from configparser import ConfigParser
 # from components.endpoint_registry import EndPointRegistry
 from components.virtual_machine import VirtualMachine
 import json
@@ -403,12 +404,25 @@ def upload_files(deadline):
         # fixed_endpoint_planner_ip = "52.224.203.30"
         # fixed_endpoint_planner_port = "5002"
 
-        fixed_endpoint_parser_ip = "localhost"
-        fixed_endpoint_parser_port = "5003"
-        fixed_endpoint_planner_ip = "localhost"
-        fixed_endpoint_planner_port = "5002"
-        fixed_endpoint_planner2_ip = "localhost"
-        fixed_endpoint_planner2_port = "5005"
+        # read config file
+        parser = ConfigParser()
+        config_file = os.path.join(os.getcwd(), "config.ini")
+        parser.read(config_file)
+
+        #set endpoints
+        fixed_endpoint_parser_ip = parser.get('fixed_endpoint_parser', 'host')
+        fixed_endpoint_parser_port = parser.get('fixed_endpoint_parser', 'port')
+        fixed_endpoint_planner_ip = parser.get('fixed_endpoint_planner', 'host')
+        fixed_endpoint_planner_port = parser.get('fixed_endpoint_planner', 'port')
+        fixed_endpoint_planner2_ip = parser.get('fixed_endpoint_planner2', 'host')
+        fixed_endpoint_planner2_port = parser.get('fixed_endpoint_planner2', 'port')
+
+        # fixed_endpoint_parser_ip = "localhost"
+        # fixed_endpoint_parser_port = "5003"
+        # fixed_endpoint_planner_ip = "localhost"
+        # fixed_endpoint_planner_port = "5002"
+        # fixed_endpoint_planner2_ip = "localhost"
+        # fixed_endpoint_planner2_port = "5005"
 
         input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename))
 
