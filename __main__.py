@@ -2,6 +2,7 @@ import os
 import uuid
 
 import requests
+import logging
 import werkzeug.utils
 from flask import Flask, request, send_from_directory, abort, redirect, url_for, jsonify, session, Response, make_response
 from flask_session import Session
@@ -38,6 +39,16 @@ Session(app)
 
 CORS(app)
 CURRENT_DIR = os.path.dirname(__file__)
+
+
+logger = logging.getLogger(__name__)
+if not getattr(logger, 'handler_set', None):
+    logger.setLevel(logging.INFO)
+h = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+h.setFormatter(formatter)
+logger.addHandler(h)
+logger.handler_set = True
 
 
 def run_icpc(dag=None, combined_input=None):
@@ -326,8 +337,10 @@ def get_number_of_tasks():
 
     parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
     session['parser_data_temp_storage'] = parser_data
+    logger.info("Got back: "+parser_data)
     # parser_data_temp_storage = parser_data
     if isinstance(parser_data,str):
+        logger.info("Convert parser_data to dict")
         parser_data = json.loads(parser_data)
     tasks = parser_data['tasks']
     number_of_tasks = len(tasks)

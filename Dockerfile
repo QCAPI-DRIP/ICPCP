@@ -14,7 +14,7 @@ EXPOSE 5001
 
 CMD echo "[fixed_endpoint_parser]" > config.ini && \ 
     echo "host=$PARSER_HOSTNAME" >> config.ini && \ 
-    echo "port=5003" >> config.ini && \
+    echo "port=8081" >> config.ini && \
     echo "[fixed_endpoint_planner]" >> config.ini && \
     echo "host=$PLANNER1_HOSTNAME" >> config.ini && \
     echo "port=5002" >> config.ini && \
