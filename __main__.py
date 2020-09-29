@@ -337,7 +337,7 @@ def get_number_of_tasks():
 
     parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
     session['parser_data_temp_storage'] = parser_data
-    logger.info("Got back: "+parser_data)
+    logger.info("Got back: "+str(parser_data))
     # parser_data_temp_storage = parser_data
     if isinstance(parser_data,str):
         logger.info("Convert parser_data to dict")
