@@ -38,7 +38,8 @@ class CwlParser:
         if '/' in index:
             res = index.split('/')
             if res[0] in self.tasks:
-                throughput = rng.randrange(0, 5)
+                # throughput = rng.randrange(0, 5)
+                throughput = 0
                 self.g.add_weighted_edges_from([(self.tasks.index(res[0]), self.tasks.index(task), throughput)])
                 #self.g.add_weighted_edges_from([(res[0], task, throughput)])
 
