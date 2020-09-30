@@ -11,6 +11,14 @@ COPY . /usr/src/app
 
 EXPOSE 5001
 
-ENTRYPOINT ["python3"]
 
-CMD ["__main__.py"]
+CMD echo "[fixed_endpoint_parser]" > config.ini && \ 
+    echo "host=$PARSER_HOSTNAME" >> config.ini && \ 
+    echo "port=8081" >> config.ini && \
+    echo "[fixed_endpoint_planner]" >> config.ini && \
+    echo "host=$PLANNER1_HOSTNAME" >> config.ini && \
+    echo "port=5002" >> config.ini && \
+    echo "[fixed_endpoint_planner2]" >> config.ini && \
+    echo "host=$PLANNER2_HOSTNAME" >> config.ini && \
+    echo "port=5005" >> config.ini && \
+    python3 __main__.py
