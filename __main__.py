@@ -257,6 +257,7 @@ AVAILABLE_SERVERS = {'Azure': [{'id': 1, 'num_cpus': 1, 'mem_size': "768MB", 'di
 @app.route('/get_vms/<provider>')
 def get_available_vms(provider):
     #First route that is accessed from frontend, here we clear session data
+    session.clear()
     vm_list = AVAILABLE_SERVERS[provider]
     resp = setHttpHeaders(vm_list)
     return resp
