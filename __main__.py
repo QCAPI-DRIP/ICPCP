@@ -256,6 +256,7 @@ AVAILABLE_SERVERS = {'Azure': [{'id': 1, 'num_cpus': 1, 'mem_size': "768MB", 'di
 # [VirtualMachine(1, "1", "768MB", "20GB"), VirtualMachine(2, "2", "1.75GB", "40GB"), VirtualMachine(3, "4", "7GB", "120GB")]
 @app.route('/get_vms/<provider>')
 def get_available_vms(provider):
+    #First route that is accessed from frontend, here we clear session data
     vm_list = AVAILABLE_SERVERS[provider]
     resp = setHttpHeaders(vm_list)
     return resp
@@ -528,7 +529,7 @@ def upload_files(deadline):
 
                     vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
                     vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
-                    logger.info("vm_data: " + str(vm_data))
+                    #logger.info("vm_data: " + str(vm_data))
 
                     servers_icpcp = get_servers(vm_data)
                     servers_icpcp_greedy_repair = get_servers(vm_data2)
@@ -548,8 +549,8 @@ def upload_files(deadline):
 
                     session['performance_indicator_storage'] = performance_indicator_storage
                     logger.info("performance_indicator_storage: " + str(performance_indicator_storage))
-                    # performance_indicator_storage.append(
-                    #     dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
+                     performance_indicator_storage.append(
+                         dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
                     resp = setHttpHeaders(True)
                     return resp
 
@@ -799,7 +800,8 @@ if __name__ == '__main__':
 
     if run_without_flask:
         input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
-        workflow_file = os.path.join(app.config['UPLOAD_FOLDER'], "compile1.cwl")
+        workflow_file = os.path.join(USABILITY_STUDY_PATH, "lobSTR-workflow.cwl")
+        #workflow_file = os.path.join(USABILITY_STUDY_PATH, "compile1.cwl")
         # # runNaivePlanner(workflow_file, input_pcp)
         get_iaas_solution(workflow_file, input_pcp, save=True)
         # request_metadata()
