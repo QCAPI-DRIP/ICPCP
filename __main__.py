@@ -22,6 +22,7 @@ import json
 
 # set to true for microservice based architecture
 MICRO_SERVICE = True
+USABILITY_STUDY = True
 
 DEBUG = True
 app = Flask(__name__)
@@ -166,8 +167,8 @@ def run_naive_planner(workflow_file_path, input_file_path):
 
 def request_metadata(endpoint, port, workflow_file=None):
     """Request metadata from the parsers"""
-    request_url = "http://{endpoint}:{port}/MasterMinded/Parsersv2/1.0.0/send_file".format(endpoint=endpoint, port=port)
-    # request_url = "http://{endpoint}:{port}/send_file".format(endpoint=endpoint, port=port)
+    #request_url = "http://{endpoint}:{port}/MasterMinded/Parsersv2/1.0.0/send_file".format(endpoint=endpoint, port=port)
+    request_url = "http://{endpoint}:{port}/send_file".format(endpoint=endpoint, port=port)
     # request_url = "http://10.0.125.227:5003/send_file"
     # request_url = "http://cwl-parser-service.default:32401/send_file"
     if workflow_file is None:
@@ -410,7 +411,6 @@ def generate_performance_model():
 def upload_files(deadline):
     try:
         if request.method == 'POST':
-            deadline = int(deadline)
             # if 'file' not in request.files:
             #     return redirect(request.url)
             added_endpoints = False
@@ -424,7 +424,17 @@ def upload_files(deadline):
                                                  werkzeug.utils.secure_filename(workflow_file.filename))
                 logger.info("workflow_file_loc: " + str(workflow_file_loc))
                 workflow_file.save(workflow_file_loc)
-            input_file = request.files['input_file']
+
+            if USABILITY_STUDY:
+                input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
+                deadline = 60
+
+            else:
+                input_file = request.files['input_file']
+                input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
+                                              werkzeug.utils.secure_filename(input_file.filename))
+                input_file.save(input_file_loc)
+                deadline = int(deadline)
 
             # configure this if you dont want to use endpoints from endpointregistry
             # fixed_endpoint_parser_ip = "52.224.203.20"
@@ -439,8 +449,7 @@ def upload_files(deadline):
             # fixed_endpoint_planner2_ip = "localhost"
             # fixed_endpoint_planner2_port = "5005"
 
-            input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], werkzeug.utils.secure_filename(input_file.filename))
-            input_file.save(input_file_loc)
+
             # microservice based
             logger.info("MICRO_SERVICE: " + str(MICRO_SERVICE))
             if MICRO_SERVICE:
