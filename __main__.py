@@ -15,6 +15,7 @@ from legacy_code.tosca_generator import ToscaGenerator
 import legacy_code.naive_planner as plan
 from legacy_code.NewInstance import NewInstance
 from definitions import ENDPOINTS_PATH
+from definitions import USABILITY_STUDY_PATH
 from configparser import ConfigParser
 # from components.endpoint_registry import EndPointRegistry
 from components.virtual_machine import VirtualMachine
@@ -167,8 +168,8 @@ def run_naive_planner(workflow_file_path, input_file_path):
 
 def request_metadata(endpoint, port, workflow_file=None):
     """Request metadata from the parsers"""
-    #request_url = "http://{endpoint}:{port}/MasterMinded/Parsersv2/1.0.0/send_file".format(endpoint=endpoint, port=port)
     request_url = "http://{endpoint}:{port}/send_file".format(endpoint=endpoint, port=port)
+    # request_url = "http://{endpoint}:{port}/send_file".format(endpoint=endpoint, port=port)
     # request_url = "http://10.0.125.227:5003/send_file"
     # request_url = "http://cwl-parser-service.default:32401/send_file"
     if workflow_file is None:
@@ -426,7 +427,7 @@ def upload_files(deadline):
                 workflow_file.save(workflow_file_loc)
 
             if USABILITY_STUDY:
-                input_file_loc = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
+                input_file_loc = os.path.join(USABILITY_STUDY_PATH, "input_pcp.yaml")
                 deadline = 60
 
             else:

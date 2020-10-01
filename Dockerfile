@@ -14,11 +14,11 @@ EXPOSE 5001
 
 CMD echo "[fixed_endpoint_parser]" > config.ini && \ 
     echo "host=$PARSER_HOSTNAME" >> config.ini && \ 
-    echo "port=8081" >> config.ini && \
+    echo "port=$PARSER_PORT" >> config.ini && \
     echo "[fixed_endpoint_planner]" >> config.ini && \
     echo "host=$PLANNER1_HOSTNAME" >> config.ini && \
-    echo "port=5002" >> config.ini && \
+    echo "port=$PLANNER1_PORT" >> config.ini && \
     echo "[fixed_endpoint_planner2]" >> config.ini && \
     echo "host=$PLANNER2_HOSTNAME" >> config.ini && \
-    echo "port=5005" >> config.ini && \
+    echo "port=$PLANNER2_PORT" >> config.ini && \
     python3 __main__.py
