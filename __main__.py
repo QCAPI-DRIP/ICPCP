@@ -550,7 +550,7 @@ def upload_files(deadline):
 
                     session['performance_indicator_storage'] = performance_indicator_storage
                     logger.info("performance_indicator_storage: " + str(performance_indicator_storage))
-                     performance_indicator_storage.append(
+                    performance_indicator_storage.append(
                          dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
                     resp = setHttpHeaders(True)
                     return resp
