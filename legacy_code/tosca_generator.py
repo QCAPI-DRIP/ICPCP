@@ -4,7 +4,7 @@ from legacy_code.NewInstance import NewInstance
 
 class ToscaGenerator:
 
-    def __init__(self, ):
+    def __init__(self):
         self.template = None
 
     def add_compute_node(self, name, instance):
