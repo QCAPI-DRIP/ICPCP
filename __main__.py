@@ -11,7 +11,7 @@ import yaml
 import requests
 from legacy_code.ICPCP_TOSCA import Workflow
 from legacy_code.cwlparser import CwlParser
-from legacy_code.tosca_generator import ToscaGenerator
+from legacy_code.tosca_generator_v2 import ToscaGenerator
 import legacy_code.naive_planner as plan
 from legacy_code.NewInstance import NewInstance
 from definitions import ENDPOINTS_PATH
@@ -144,10 +144,13 @@ def generate_tosca(servers, microservices=False):
     for i in range(0, len(servers)):
         instance = servers[i]
         if not microservices:
-            x = {'num_cpus': i + 1, 'disk_size': "{} GB".format((i + 1) * 10),
+            x = {'num_cores': i + 1, 'disk_size': "{} GB".format((i + 1) * 10),
                  'mem_size': "{} MB".format(int((i + 1) * 4096))}
             instance.properties = x
-        tosca_gen.add_compute_node("server {}".format(i + 1), instance)
+        tosca_gen.add_compute_node("server_{}".format(i + 1), instance)
+
+    tosca_gen.add_topology()
+    tosca_gen.add_description()
 
     tosca_file_name = "generated_tosca_description_" + uuid.uuid4().hex
     tosca_file_loc = os.path.join(app.config['DOWNLOAD_FOLDER'], tosca_file_name)
@@ -204,8 +207,7 @@ def get_servers(vm_data):
         vm_end = vm['vm_end']
         vm_type = vm['vm_type']
         vm_cost = vm['vm_cost']
-
-        properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
+        properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'], 'num_cores': vm['num_cores'], 'os': "Ubuntu 18.04",  'user_name' : "vm_user"}
         server = NewInstance(vm_type, vm_cost, vm_start, vm_end, tasks)
         server.properties = properties
         server.task_names = tasks
@@ -242,15 +244,15 @@ def get_architecture():
     return json.dumps(MICRO_SERVICE)
 
 
-AVAILABLE_SERVERS = {'Azure': [{'id': 1, 'num_cpus': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
-                               {'id': 2, 'num_cpus': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
-                               {'id': 3, 'num_cpus': 4, 'mem_size': "7GB", 'disk_size': "120GB"}],
-                     'Amazon': [{'id': 1, 'num_cpus': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
-                                {'id': 2, 'num_cpus': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
-                                {'id': 3, 'num_cpus': 4, 'mem_size': "7GB", 'disk_size': "120GB"}],
-                     'Google Cloud': [{'id': 1, 'num_cpus': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
-                                      {'id': 2, 'num_cpus': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
-                                      {'id': 3, 'num_cpus': 4, 'mem_size': "7GB", 'disk_size': "120GB"}]}
+AVAILABLE_SERVERS = {'Azure': [{'id': 1, 'num_cores': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
+                               {'id': 2, 'num_cores': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
+                               {'id': 3, 'num_cores': 4, 'mem_size': "7GB", 'disk_size': "120GB"}],
+                     'Amazon': [{'id': 1, 'num_cores': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
+                                {'id': 2, 'num_cores': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
+                                {'id': 3, 'num_cores': 4, 'mem_size': "7GB", 'disk_size': "120GB"}],
+                     'Google Cloud': [{'id': 1, 'num_cores': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
+                                      {'id': 2, 'num_cores': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
+                                      {'id': 3, 'num_cores': 4, 'mem_size': "7GB", 'disk_size': "120GB"}]}
 
 
 # [VirtualMachine(1, "1", "768MB", "20GB"), VirtualMachine(2, "2", "1.75GB", "40GB"), VirtualMachine(3, "4", "7GB", "120GB")]
@@ -383,13 +385,13 @@ def generate_performance_model():
 
     for vm in selected_vms:
         count += 1
-        num_cpus = vm['num_cpus']
-        perf_list = [PERFORMANCE_MAPPER[num_cpus] for _ in range(number_of_tasks)]
+        num_cores = vm['num_cores']
+        perf_list = [PERFORMANCE_MAPPER[num_cores] for _ in range(number_of_tasks)]
         if not pcp_input_file:
-            pcp_input_file.append({'price': [PRICE_MAPPER[num_cpus]]})
+            pcp_input_file.append({'price': [PRICE_MAPPER[num_cores]]})
             pcp_input_file.append({'performance': {'vm%s' % count: perf_list}})
         else:
-            pcp_input_file[0]['price'].append(PRICE_MAPPER[num_cpus])
+            pcp_input_file[0]['price'].append(PRICE_MAPPER[num_cores])
             pcp_input_file[1]['performance']['vm%s' % count] = perf_list
 
     file_name = 'input_pcp_' + uuid.uuid4().hex + '.yaml'
@@ -439,6 +441,7 @@ def upload_files(deadline):
                 input_file.save(input_file_loc)
                 deadline = int(deadline)
 
+            selected_vms = json.loads(request.form['selected_vms'])
             # configure this if you dont want to use endpoints from endpointregistry
             # fixed_endpoint_parser_ip = "52.224.203.20"
             # fixed_endpoint_parser_port = "5003"
@@ -498,6 +501,7 @@ def upload_files(deadline):
                     for (endpoint, port) in parser_endpoints:
                         parser_data = request_metadata(endpoint, port, workflow_file_loc)
                         parser_data['icpcp_params'] = icpcp_parameters
+                        parser_data['selected_vms'] = selected_vms
                         logger.info("parser_data: " + str(parser_data))
 
                         # send the parser output to each available planner
@@ -509,8 +513,7 @@ def upload_files(deadline):
                                 tasks = vm['tasks']
                                 vm_start = vm['vm_start']
                                 vm_end = vm['vm_end']
-                                properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'],
-                                              'mem_size': vm['mem_size']}
+                                properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'], 'num_cores': vm['num_cores'], 'os': "Ubuntu 18.04",  'user_name' : "vm_user"}
                                 server = NewInstance(0, 0, vm_start, vm_end, tasks)
                                 server.properties = properties
                                 server.task_names = tasks
@@ -527,31 +530,30 @@ def upload_files(deadline):
                     if isinstance(parser_data, str):
                         parser_data = json.loads(parser_data)
                     parser_data['icpcp_params'] = icpcp_parameters
+                    parser_data['selected_vms'] = selected_vms
 
                     vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
-                    vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
+                    #vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
                     #logger.info("vm_data: " + str(vm_data))
 
                     servers_icpcp = get_servers(vm_data)
-                    servers_icpcp_greedy_repair = get_servers(vm_data2)
+                    #servers_icpcp_greedy_repair = get_servers(vm_data2)
 
-                    logger.info("servers_icpcp_greedy_repair: " + str(servers_icpcp_greedy_repair))
+                    #logger.info("servers_icpcp_greedy_repair: " + str(servers_icpcp_greedy_repair))
 
                     tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
-                    tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair[0], microservices=True)
+                    #tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair[0], microservices=True)
 
                     #add found solutions to session data
                     performance_indicator_storage = []
                     performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp,
                                                                     total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
-                    performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp_greedy_repair,
-                                                              total_cost=servers_icpcp_greedy_repair[1], makespan=servers_icpcp_greedy_repair[2]))
+                    #performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp_greedy_repair,
+                    #                                          total_cost=servers_icpcp_greedy_repair[1], makespan=servers_icpcp_greedy_repair[2]))
 
 
                     session['performance_indicator_storage'] = performance_indicator_storage
                     logger.info("performance_indicator_storage: " + str(performance_indicator_storage))
-                    performance_indicator_storage.append(
-                         dict(tosca_file_name=tosca_file_icpcp, total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
                     resp = setHttpHeaders(True)
                     return resp
 
@@ -632,7 +634,7 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
                         tasks = vm['tasks']
                         vm_start = vm['vm_start']
                         vm_end = vm['vm_end']
-                        properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'],
+                        properties = {'num_cores': vm['num_cores'], 'disk_size': vm['disk_size'],
                                       'mem_size': vm['mem_size']}
                         server = NewInstance(0, 0, vm_start, vm_end, tasks)
                         server.properties = properties
@@ -652,7 +654,7 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
                 tasks = vm['tasks']
                 vm_start = vm['vm_start']
                 vm_end = vm['vm_end']
-                properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
+                properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'], 'num_cores': vm['num_cores'], 'os': "Ubuntu 18.04",  'user_name' : "vm_user"}
                 server = NewInstance(0, 0, vm_start, vm_end, tasks)
                 server.properties = properties
                 server.task_names = tasks
@@ -667,7 +669,7 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
                 tasks = vm['tasks']
                 vm_start = vm['vm_start']
                 vm_end = vm['vm_end']
-                properties = {'num_cpus': vm['num_cpus'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
+                properties = {'num_cores': vm['num_cores'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
                 server = NewInstance(0, 0, vm_start, vm_end, tasks)
                 server.properties = properties
                 server.task_names = tasks
