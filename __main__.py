@@ -365,34 +365,59 @@ def generate_performance_model():
     # Used for generation of perfromance model
     PERFORMANCE_MAPPER = {1: 16, 2: 8, 3: 4, 4: 2, 5: 1}
     PRICE_MAPPER = {1: 2, 2: 4, 3: 8, 4: 16, 5: 32}
+    use_custom_perf_values = False
 
-    # workflow_file = request.files['workflow_file']
-    selected_vms = json.load(request.files['selected_vms'])
-    # workflow_file_loc = os.path.join(app.config['UPLOAD_FOLDER'],
-    #                                  werkzeug.utils.secure_filename(workflow_file.filename))
-    # workflow_file.save(workflow_file_loc)
-    # fixed_endpoint_parser_ip = "localhost"
-    # fixed_endpoint_parser_port = "5003"
-    #
-    # parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
     if 'parser_data_temp_storage' in session:
         parser_data = session['parser_data_temp_storage']
-    pcp_input_file = []
-    if isinstance(parser_data,str):
-        parser_data = json.loads(parser_data)
+
     number_of_tasks = len(parser_data['tasks'])
+
+    selected_vms = json.load(request.files['selected_vms'])
+
+    if 'performance_values' in request.form:
+        performance_values = json.loads(request.form['performance_values'])
+        if len(performance_values) == number_of_tasks:
+            use_custom_perf_values = True
+
+        #convert to list of int
+        performance_values = list(map(int, performance_values))
+
+    # ICPCP consumes performance model that should be ordered from fastest (most expensive) to slowest
+    # so we have to order the selected the vms
+    selected_vms_ordered = sorted(selected_vms, key=lambda k: k['num_cores'], reverse=True)
+
+
+    # get the number of cores of fastest vm and number of cores of slowest vm
+    num_cores_slowest_vm = selected_vms_ordered[len(selected_vms_ordered) - 1]['num_cores']
+    num_cores_fastest_vm = selected_vms_ordered[0]['num_cores']
+
+    pcp_input_file = []
+
     count = 0
 
-    for vm in selected_vms:
+    for vm in selected_vms_ordered:
         count += 1
         num_cores = vm['num_cores']
         perf_list = [PERFORMANCE_MAPPER[num_cores] for _ in range(number_of_tasks)]
         if not pcp_input_file:
-            pcp_input_file.append({'price': [PRICE_MAPPER[num_cores]]})
-            pcp_input_file.append({'performance': {'vm%s' % count: perf_list}})
+            if not use_custom_perf_values:
+                pcp_input_file.append({'price': [PRICE_MAPPER[num_cores]]})
+                pcp_input_file.append({'performance': {'vm%s' % count : perf_list}})
+            else:
+                pcp_input_file.append({'price': [PRICE_MAPPER[num_cores]]})
+                pcp_input_file.append({'performance': {'vm%s' % count: performance_values}})
+                #we start with max perf values and then divide
+
         else:
-            pcp_input_file[0]['price'].append(PRICE_MAPPER[num_cores])
-            pcp_input_file[1]['performance']['vm%s' % count] = perf_list
+            if not use_custom_perf_values:
+                pcp_input_file[0]['price'].append(PRICE_MAPPER[num_cores])
+                pcp_input_file[1]['performance']['vm%s' % count] = perf_list
+            else:
+                multiplier = (num_cores_fastest_vm - num_cores) ** 2 # for every less core we want to multiply perf value by a factor of two
+                vm_perf_values = [i * multiplier for i in performance_values]
+                pcp_input_file[0]['price'].append(PRICE_MAPPER[num_cores])
+                pcp_input_file[1]['performance']['vm%s' % count] = vm_perf_values
+
 
     file_name = 'input_pcp_' + uuid.uuid4().hex + '.yaml'
 
@@ -441,6 +466,8 @@ def upload_files(deadline):
                 input_file.save(input_file_loc)
                 deadline = int(deadline)
 
+
+            #TODO: Make sure selected_vms corresponds to performance model
             selected_vms = json.loads(request.form['selected_vms'])
             # configure this if you dont want to use endpoints from endpointregistry
             # fixed_endpoint_parser_ip = "52.224.203.20"
