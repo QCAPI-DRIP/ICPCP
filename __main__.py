@@ -227,6 +227,7 @@ def setHttpHeaders(input):
     resp.headers['Access-Control-Allow-Credentials'] = 'true'
     return resp
 
+
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     try:
@@ -581,7 +582,7 @@ def upload_files(deadline):
 
                     session['performance_indicator_storage'] = performance_indicator_storage
                     logger.info("performance_indicator_storage: " + str(performance_indicator_storage))
-                    resp = setHttpHeaders(True)
+                    resp = setHttpHeaders(len(performance_indicator_storage))
                     return resp
 
                 # return redirect(url_for('uploaded_file', filename=tosca_file_icpcp))
