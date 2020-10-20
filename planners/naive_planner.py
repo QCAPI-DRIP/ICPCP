@@ -1,10 +1,4 @@
-import os
-import sys
-import re
-import random
-import networkx as nx
-import numpy as np
-from legacy_code.NewInstance import NewInstance
+from planners.NewVMInstance import NewVMInstance
 import yaml
 
 
@@ -22,7 +16,7 @@ def naivePlan(dag, combined_input):
     count = 0
     if number_of_tasks > number_of_vms:
         for node in dag.nodes():
-            vm = NewInstance(count, vm_price[count], 0, 0, [node])
+            vm = NewVMInstance(count, vm_price[count], 0, 0, [node])
             count += 1
             if count == number_of_vms - 1:
                 count = 0
@@ -30,7 +24,7 @@ def naivePlan(dag, combined_input):
 
     else:
         for node in dag.nodes():
-            vm = NewInstance(count, vm_price[count], 0, 0, [node])
+            vm = NewVMInstance(count, vm_price[count], 0, 0, [node])
             servers.append(vm)
             count += 1
         return servers

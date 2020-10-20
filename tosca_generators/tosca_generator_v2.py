@@ -1,5 +1,5 @@
 import yaml
-from legacy_code.NewInstance import NewInstance
+from planners.NewVMInstance import NewVMInstance
 
 COMPUTE_TEMPLATE_CODE = """
 interfaces:
@@ -110,7 +110,7 @@ class ToscaGenerator:
 
 
 if __name__ == '__main__':
-    instances = NewInstance(0, 0, 0, 0, [])
+    instances = NewVMInstance(0, 0, 0, 0, [])
     instances.properties = {'disk_size': "20 GB", 'mem_size': "4098 MB", 'num_cores' : 1, 'os': "Ubuntu 18.04",
                             'user_name': "vm_user"}
     tosca_gen = ToscaGenerator()

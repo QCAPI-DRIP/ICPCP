@@ -6,23 +6,15 @@ Created on Nov 20, 2015
 
 import os
 import sys
-import re
-import random
 import networkx as nx
 import numpy as np
-import json
 import yaml
-import io
-from legacy_code.NewInstance import NewInstance
-from subprocess import call
-import time
-from collections import deque
+from planners.NewVMInstance import NewVMInstance
 
 from optparse import OptionParser
 
 
 # from __builtin__ import True
-from networkx import DiGraph
 
 """To add more vms in icpcp_tosca, change line 96 in icpcp tosca and add NSx + if statement to print instances line 
 681 """
@@ -290,7 +282,7 @@ class Workflow:
                     self.assigned_list[pcp[0]], pcp[0]]
                 # save the assigned VM in the instance list
                 # TODO: Decision of the time slot for the new instance
-                ni = NewInstance(assigned_vm, self.vm_price[assigned_vm], self.G.node[pcp[len(pcp) - 1]]['est'], self.G.node[pcp[0]]['eft'], pcp)
+                ni = NewVMInstance(assigned_vm, self.vm_price[assigned_vm], self.G.node[pcp[len(pcp) - 1]]['est'], self.G.node[pcp[0]]['eft'], pcp)
                 self.instances.append(ni)
             elif assigned_vm == -1:
                 print("the available resources cannot meet the deadline with the IC-PCP algorithm")

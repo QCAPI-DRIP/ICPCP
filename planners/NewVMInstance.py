@@ -1,4 +1,4 @@
-class NewInstance(object):
+class NewVMInstance(object):
     def __init__(self, vm_type: int, vm_cost: int, vm_start: int, vm_end: int, pcp: list):
         self.vm_type = vm_type
         self.vm_cost = vm_cost

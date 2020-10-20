@@ -9,10 +9,10 @@ from flask_cors import CORS
 import yaml
 import requests
 from planners.ICPCP_TOSCA import Workflow
-from legacy_code.cwlparser import CwlParser
-from legacy_code.tosca_generator_v2 import ToscaGenerator
-import legacy_code.naive_planner as plan
-from legacy_code.NewInstance import NewInstance
+from parsers.cwlparser import CwlParser
+from tosca_generators.tosca_generator_v2 import ToscaGenerator
+import planners.naive_planner as plan
+from planners.NewVMInstance import NewVMInstance
 from definitions import ENDPOINTS_PATH
 from definitions import USABILITY_STUDY_PATH
 from configparser import ConfigParser
@@ -206,7 +206,7 @@ def get_servers(vm_data):
         vm_type = vm['vm_type']
         vm_cost = vm['vm_cost']
         properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'], 'num_cores': vm['num_cores'], 'os': "Ubuntu 18.04",  'user_name' : "vm_user"}
-        server = NewInstance(vm_type, vm_cost, vm_start, vm_end, tasks)
+        server = NewVMInstance(vm_type, vm_cost, vm_start, vm_end, tasks)
         server.properties = properties
         server.task_names = tasks
 
@@ -540,7 +540,7 @@ def upload_files(deadline):
                                 vm_start = vm['vm_start']
                                 vm_end = vm['vm_end']
                                 properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'], 'num_cores': vm['num_cores'], 'os': "Ubuntu 18.04",  'user_name' : "vm_user"}
-                                server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                                server = NewVMInstance(0, 0, vm_start, vm_end, tasks)
                                 server.properties = properties
                                 server.task_names = tasks
                                 servers.append(server)
@@ -662,7 +662,7 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
                         vm_end = vm['vm_end']
                         properties = {'num_cores': vm['num_cores'], 'disk_size': vm['disk_size'],
                                       'mem_size': vm['mem_size']}
-                        server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                        server = NewVMInstance(0, 0, vm_start, vm_end, tasks)
                         server.properties = properties
                         server.task_names = tasks
                         servers.append(server)
@@ -681,7 +681,7 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
                 vm_start = vm['vm_start']
                 vm_end = vm['vm_end']
                 properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'], 'num_cores': vm['num_cores'], 'os': "Ubuntu 18.04",  'user_name' : "vm_user"}
-                server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                server = NewVMInstance(0, 0, vm_start, vm_end, tasks)
                 server.properties = properties
                 server.task_names = tasks
                 servers.append(server)
@@ -696,7 +696,7 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
                 vm_start = vm['vm_start']
                 vm_end = vm['vm_end']
                 properties = {'num_cores': vm['num_cores'], 'disk_size': vm['disk_size'], 'mem_size': vm['mem_size']}
-                server = NewInstance(0, 0, vm_start, vm_end, tasks)
+                server = NewVMInstance(0, 0, vm_start, vm_end, tasks)
                 server.properties = properties
                 server.task_names = tasks
                 servers.append(server)

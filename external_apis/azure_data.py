@@ -1,5 +1,5 @@
 import requests
-from legacy_code.Errors.api_error import APIError
+from external_apis.Errors.api_error import APIError
 import os
 from azure.cli.core import get_default_cli
 

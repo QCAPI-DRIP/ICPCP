@@ -1,5 +1,5 @@
 import yaml
-from legacy_code.NewInstance import NewInstance
+from planners.NewVMInstance import NewVMInstance
 
 
 class ToscaGenerator:
@@ -38,7 +38,7 @@ class ToscaGenerator:
             "First load a template before writing to file"
 
 if __name__ == '__main__':
-    instances = NewInstance(0, 0, 0, 0)
+    instances = NewVMInstance(0, 0, 0, 0)
     instances.properties = {'num_cpus': 2, 'disk_size': "20 GB", 'mem_size': "4098 MB"}
     tosca_gen = ToscaGenerator(instances)
     tosca_gen.load_default_template()
