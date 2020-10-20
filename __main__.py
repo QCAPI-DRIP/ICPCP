@@ -1,15 +1,14 @@
 import os
 import uuid
 import sys
-import requests
 import logging
 import werkzeug.utils
-from flask import Flask, request, send_from_directory, abort, redirect, url_for, jsonify, session, Response, make_response
+from flask import Flask, request, send_from_directory, abort, redirect, url_for, jsonify, session, make_response
 from flask_session import Session
 from flask_cors import CORS
 import yaml
 import requests
-from legacy_code.ICPCP_TOSCA import Workflow
+from planners.ICPCP_TOSCA import Workflow
 from legacy_code.cwlparser import CwlParser
 from legacy_code.tosca_generator_v2 import ToscaGenerator
 import legacy_code.naive_planner as plan
@@ -18,7 +17,6 @@ from definitions import ENDPOINTS_PATH
 from definitions import USABILITY_STUDY_PATH
 from configparser import ConfigParser
 # from components.endpoint_registry import EndPointRegistry
-from components.virtual_machine import VirtualMachine
 import json
 
 # set to true for microservice based architecture
