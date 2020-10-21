@@ -112,6 +112,7 @@ venv.bak/
 planning_input
 planning_output
 experiment_logs
+integration_study
 
 # Spyder project settings
 .spyderproject

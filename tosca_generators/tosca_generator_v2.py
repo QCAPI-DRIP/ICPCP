@@ -1,5 +1,7 @@
 import yaml
+import os
 from planners.NewVMInstance import NewVMInstance
+from definitions import TOSCA_GENERATORS
 
 COMPUTE_TEMPLATE_CODE = """
 interfaces:
@@ -97,7 +99,7 @@ class ToscaGenerator:
 
 
     def load_default_template(self):
-        with open('default_template.yaml', 'r') as stream:
+        with open(os.path.join(TOSCA_GENERATORS, 'default_template.yaml'), 'r') as stream:
             data = yaml.safe_load(stream)
         self.template = data
 
