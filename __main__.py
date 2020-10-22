@@ -21,7 +21,7 @@ import json
 
 # set to true for microservice based architecture
 MICRO_SERVICE = True
-USABILITY_STUDY = True
+USABILITY_STUDY = False
 
 DEBUG = True
 app = Flask(__name__)
@@ -832,7 +832,7 @@ if __name__ == '__main__':
         workflow_file = os.path.join(USABILITY_STUDY_PATH, "lobSTR-workflow.cwl")
         #workflow_file = os.path.join(USABILITY_STUDY_PATH, "compile1.cwl")
         # # runNaivePlanner(workflow_file, input_pcp)
-        get_iaas_solution(workflow_file, input_pcp, save=True)
+        get_iaas_solution(workflow_file, input_pcp)
         # request_metadata()
     else:
         port = int(os.environ.get('PORT', 5001))
