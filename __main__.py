@@ -41,10 +41,8 @@ SESSION_TYPE = 'filesystem'
 app.config.from_object(__name__)
 Session(app)
 
-
 CORS(app)
 CURRENT_DIR = os.path.dirname(__file__)
-
 
 logger = logging.getLogger(__name__)
 if not getattr(logger, 'handler_set', None):
@@ -205,7 +203,8 @@ def get_servers(vm_data):
         vm_end = vm['vm_end']
         vm_type = vm['vm_type']
         vm_cost = vm['vm_cost']
-        properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'], 'num_cores': vm['num_cores'], 'os': "Ubuntu 18.04",  'user_name' : "vm_user"}
+        properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'], 'num_cores': vm['num_cores'],
+                      'os': "Ubuntu 18.04", 'user_name': "vm_user"}
         server = NewVMInstance(vm_type, vm_cost, vm_start, vm_end, tasks)
         server.properties = properties
         server.task_names = tasks
@@ -230,7 +229,7 @@ def setHttpHeaders(input):
 def uploaded_file(filename):
     try:
         resp = make_response(send_from_directory(app.config["DOWNLOAD_FOLDER"], filename=filename + ".yaml",
-                                   as_attachment=True))
+                                                 as_attachment=True))
         resp.headers['Access-Control-Allow-Credentials'] = 'true'
         return resp
 
@@ -243,12 +242,12 @@ def get_architecture():
     return json.dumps(MICRO_SERVICE)
 
 
-AVAILABLE_SERVERS = {'Azure': [{'id': 1, 'num_cores': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
-                               {'id': 2, 'num_cores': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
-                               {'id': 3, 'num_cores': 4, 'mem_size': "7GB", 'disk_size': "120GB"}],
-                     'Amazon': [{'id': 1, 'num_cores': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
-                                {'id': 2, 'num_cores': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
-                                {'id': 3, 'num_cores': 4, 'mem_size': "7GB", 'disk_size': "120GB"}],
+AVAILABLE_SERVERS = {'Microsoft Azure': [{'id': 1, 'num_cores': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
+                                          {'id': 2, 'num_cores': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
+                                          {'id': 3, 'num_cores': 4, 'mem_size': "7GB", 'disk_size': "120GB"}],
+                     'Amazon Web Services': [{'id': 1, 'num_cores': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
+                                             {'id': 2, 'num_cores': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
+                                             {'id': 3, 'num_cores': 4, 'mem_size': "7GB", 'disk_size': "120GB"}],
                      'Google Cloud': [{'id': 1, 'num_cores': 1, 'mem_size': "768MB", 'disk_size': "20GB"},
                                       {'id': 2, 'num_cores': 2, 'mem_size': "1.75GB", 'disk_size': "40GB"},
                                       {'id': 3, 'num_cores': 4, 'mem_size': "7GB", 'disk_size': "120GB"}]}
@@ -257,7 +256,7 @@ AVAILABLE_SERVERS = {'Azure': [{'id': 1, 'num_cores': 1, 'mem_size': "768MB", 'd
 # [VirtualMachine(1, "1", "768MB", "20GB"), VirtualMachine(2, "2", "1.75GB", "40GB"), VirtualMachine(3, "4", "7GB", "120GB")]
 @app.route('/get_vms/<provider>')
 def get_available_vms(provider):
-    #First route that is accessed from frontend, here we clear session data
+    # First route that is accessed from frontend, here we clear session data
     session.clear()
     vm_list = AVAILABLE_SERVERS[provider]
     resp = setHttpHeaders(vm_list)
@@ -347,16 +346,15 @@ def get_number_of_tasks():
 
     parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
     session['parser_data_temp_storage'] = parser_data
-    logger.info("Got back: "+str(parser_data))
+    logger.info("Got back: " + str(parser_data))
     # parser_data_temp_storage = parser_data
-    if isinstance(parser_data,str):
+    if isinstance(parser_data, str):
         logger.info("Convert parser_data to dict")
         parser_data = json.loads(parser_data)
     tasks = parser_data['tasks']
     number_of_tasks = len(tasks)
     resp = setHttpHeaders(number_of_tasks)
     return resp
-
 
 
 @app.route('/generate', methods=['POST'])
@@ -378,13 +376,12 @@ def generate_performance_model():
         if len(performance_values) == number_of_tasks:
             use_custom_perf_values = True
 
-        #convert to list of int
+        # convert to list of int
         performance_values = list(map(int, performance_values))
 
     # ICPCP consumes performance model that should be ordered from fastest (most expensive) to slowest
     # so we have to order the selected the vms
     selected_vms_ordered = sorted(selected_vms, key=lambda k: k['num_cores'], reverse=True)
-
 
     # get the number of cores of fastest vm and number of cores of slowest vm
     num_cores_slowest_vm = selected_vms_ordered[len(selected_vms_ordered) - 1]['num_cores']
@@ -401,22 +398,22 @@ def generate_performance_model():
         if not pcp_input_file:
             if not use_custom_perf_values:
                 pcp_input_file.append({'price': [PRICE_MAPPER[num_cores]]})
-                pcp_input_file.append({'performance': {'vm%s' % count : perf_list}})
+                pcp_input_file.append({'performance': {'vm%s' % count: perf_list}})
             else:
                 pcp_input_file.append({'price': [PRICE_MAPPER[num_cores]]})
                 pcp_input_file.append({'performance': {'vm%s' % count: performance_values}})
-                #we start with max perf values and then divide
+                # we start with max perf values and then divide
 
         else:
             if not use_custom_perf_values:
                 pcp_input_file[0]['price'].append(PRICE_MAPPER[num_cores])
                 pcp_input_file[1]['performance']['vm%s' % count] = perf_list
             else:
-                multiplier = (num_cores_fastest_vm - num_cores) ** 2 # for every less core we want to multiply perf value by a factor of two
+                multiplier = (
+                                         num_cores_fastest_vm - num_cores) ** 2  # for every less core we want to multiply perf value by a factor of two
                 vm_perf_values = [i * multiplier for i in performance_values]
                 pcp_input_file[0]['price'].append(PRICE_MAPPER[num_cores])
                 pcp_input_file[1]['performance']['vm%s' % count] = vm_perf_values
-
 
     file_name = 'input_pcp_' + uuid.uuid4().hex + '.yaml'
 
@@ -428,7 +425,7 @@ def generate_performance_model():
 
     try:
         resp = make_response(send_from_directory(app.config["DOWNLOAD_FOLDER"], filename=file_name,
-                                   as_attachment=True))
+                                                 as_attachment=True))
         resp.headers['Access-Control-Allow-Credentials'] = 'true'
         return resp
 
@@ -465,8 +462,7 @@ def upload_files(deadline):
                 input_file.save(input_file_loc)
                 deadline = int(deadline)
 
-
-            #TODO: Make sure selected_vms corresponds to performance model
+            # TODO: Make sure selected_vms corresponds to performance model
             selected_vms = json.loads(request.form['selected_vms'])
             # configure this if you dont want to use endpoints from endpointregistry
             # fixed_endpoint_parser_ip = "52.224.203.20"
@@ -480,7 +476,6 @@ def upload_files(deadline):
             # fixed_endpoint_planner_port = "5002"
             # fixed_endpoint_planner2_ip = "localhost"
             # fixed_endpoint_planner2_port = "5005"
-
 
             # microservice based
             logger.info("MICRO_SERVICE: " + str(MICRO_SERVICE))
@@ -539,7 +534,9 @@ def upload_files(deadline):
                                 tasks = vm['tasks']
                                 vm_start = vm['vm_start']
                                 vm_end = vm['vm_end']
-                                properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'], 'num_cores': vm['num_cores'], 'os': "Ubuntu 18.04",  'user_name' : "vm_user"}
+                                properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'],
+                                              'num_cores': vm['num_cores'], 'os': "Ubuntu 18.04",
+                                              'user_name': "vm_user"}
                                 server = NewVMInstance(0, 0, vm_start, vm_end, tasks)
                                 server.properties = properties
                                 server.task_names = tasks
@@ -551,7 +548,8 @@ def upload_files(deadline):
                         parser_data = session['parser_data_temp_storage']
                         logger.info("parser_data: " + str(parser_data))
                     else:
-                        parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port, workflow_file_loc)
+                        parser_data = request_metadata(fixed_endpoint_parser_ip, fixed_endpoint_parser_port,
+                                                       workflow_file_loc)
 
                     if isinstance(parser_data, str):
                         parser_data = json.loads(parser_data)
@@ -559,24 +557,23 @@ def upload_files(deadline):
                     parser_data['selected_vms'] = selected_vms
 
                     vm_data = request_vm_sizes(fixed_endpoint_planner_ip, fixed_endpoint_planner_port, parser_data)
-                    #vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
+                    vm_data2 = request_vm_sizes(fixed_endpoint_planner2_ip, fixed_endpoint_planner2_port, parser_data)
                     logger.info("vm_data: " + str(vm_data))
 
                     servers_icpcp = get_servers(vm_data)
-                    #servers_icpcp_greedy_repair = get_servers(vm_data2)
+                    servers_icpcp_greedy_repair = get_servers(vm_data2)
 
-                    #logger.info("servers_icpcp_greedy_repair: " + str(servers_icpcp_greedy_repair))
+                    # logger.info("servers_icpcp_greedy_repair: " + str(servers_icpcp_greedy_repair))
 
                     tosca_file_icpcp = generate_tosca(servers_icpcp[0], microservices=True)
-                    #tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair[0], microservices=True)
+                    tosca_file_icpcp_greedy_repair = generate_tosca(servers_icpcp_greedy_repair[0], microservices=True)
 
-                    #add found solutions to session data
+                    # add found solutions to session data
                     performance_indicator_storage = []
                     performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp,
-                                                                    total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
-                    #performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp_greedy_repair,
-                     #                                         total_cost=servers_icpcp_greedy_repair[1], makespan=servers_icpcp_greedy_repair[2]))
-
+                                                              total_cost=servers_icpcp[1], makespan=servers_icpcp[2]))
+                    performance_indicator_storage.append(dict(tosca_file_name=tosca_file_icpcp_greedy_repair,
+                                                             total_cost=servers_icpcp_greedy_repair[1], makespan=servers_icpcp_greedy_repair[2]))
 
                     session['performance_indicator_storage'] = performance_indicator_storage
                     logger.info("performance_indicator_storage: " + str(performance_indicator_storage))
@@ -680,7 +677,8 @@ def tosca_microservice_local_test(workflow_file_loc, input_file_loc):
                 tasks = vm['tasks']
                 vm_start = vm['vm_start']
                 vm_end = vm['vm_end']
-                properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'], 'num_cores': vm['num_cores'], 'os': "Ubuntu 18.04",  'user_name' : "vm_user"}
+                properties = {'disk_size': vm['disk_size'], 'mem_size': vm['mem_size'], 'num_cores': vm['num_cores'],
+                              'os': "Ubuntu 18.04", 'user_name': "vm_user"}
                 server = NewVMInstance(0, 0, vm_start, vm_end, tasks)
                 server.properties = properties
                 server.task_names = tasks
@@ -826,11 +824,10 @@ if __name__ == '__main__':
     fixed_endpoint_planner2_ip = parser.get('fixed_endpoint_planner2', 'host')
     fixed_endpoint_planner2_port = parser.get('fixed_endpoint_planner2', 'port')
 
-
     if run_without_flask:
         input_pcp = os.path.join(app.config['UPLOAD_FOLDER'], "input_pcp.yaml")
         workflow_file = os.path.join(USABILITY_STUDY_PATH, "lobSTR-workflow.cwl")
-        #workflow_file = os.path.join(USABILITY_STUDY_PATH, "compile1.cwl")
+        # workflow_file = os.path.join(USABILITY_STUDY_PATH, "compile1.cwl")
         # # runNaivePlanner(workflow_file, input_pcp)
         get_iaas_solution(workflow_file, input_pcp)
         # request_metadata()
